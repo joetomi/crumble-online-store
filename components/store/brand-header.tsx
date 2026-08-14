@@ -3,17 +3,14 @@ import type { StoreContent } from "@/lib/types";
 
 export function BrandHeader({ brand }: { brand: StoreContent["brand"] }) {
   return (
-    <header className="site-header">
-      <a className="header-brand" href="#top" aria-label="Crumble — الرئيسية">
-        <img src={brand.logo} alt="" width="44" height="44" />
-        <span>
-          <b>CRUMBLE</b>
-          <small>{brand.slogan}</small>
-        </span>
+    <header className="cr-header">
+      <a className="cr-brand" href="#top" aria-label="Crumble — الرئيسية">
+        <img src={brand.logo} alt="" width="46" height="46" />
+        <span><b>CRUMBLE</b><small dir="ltr">{brand.slogan}</small></span>
       </a>
       <nav aria-label="التنقل الرئيسي">
-        <a href="#order">اطلب الآن</a>
-        <a href="/admin">لوحة التحكم</a>
+        <a className="cr-admin-link" href="/admin">الإدارة</a>
+        <a className="cr-header-cta" href="#order">ابدأ طلبك</a>
       </nav>
     </header>
   );

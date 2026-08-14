@@ -12,69 +12,47 @@ type ProductGridProps = {
   mode: "pieces" | "box";
 };
 
-export function ProductGrid({
-  products,
-  quantities,
-  disabled,
-  onAdd,
-  onRemove,
-  mode,
-}: ProductGridProps) {
+export function ProductGrid({ products, quantities, disabled, onAdd, onRemove, mode }: ProductGridProps) {
   return (
-    <div className={`product-grid product-grid--${mode}`}>
+    <div className={`cr-product-grid cr-product-grid--${mode}`}>
       {products.map((product, index) => {
         const quantity = quantities[product.id] ?? 0;
         return (
           <article
-            className={`product-item ${disabled ? "is-dimmed" : ""}`}
+            className={`cr-product ${disabled ? "is-disabled" : ""}`}
             key={product.id}
-            style={{ "--accent": product.accent, "--delay": `${index * 35}ms` } as React.CSSProperties}
+            style={{ "--product-accent": product.accent, "--reveal-delay": `${index * 45}ms` } as React.CSSProperties}
           >
             <button
-              className="product-image-button"
+              className="cr-product-photo"
               type="button"
               aria-label={`إضافة ${product.name}`}
               aria-disabled={disabled}
-              onClick={(event) => {
-                if (!disabled) onAdd(product, event.currentTarget);
-              }}
+              onClick={(event) => !disabled && onAdd(product, event.currentTarget)}
             >
-              <span className="product-orbit" aria-hidden="true" />
-              <img src={product.image} alt={product.name} loading={index > 3 ? "lazy" : "eager"} />
-              {quantity > 0 && (
-                <span className="quantity-pop" key={quantity} dir="ltr">
-                  ×{quantity}
-                </span>
-              )}
-              {disabled && <span className="complete-mark">اكتمل</span>}
+              <img src={product.image} alt={product.name} loading={index > 2 ? "lazy" : "eager"} />
+              {quantity > 0 && <span className="cr-product-count" dir="ltr">×{quantity}</span>}
+              {disabled && <span className="cr-product-full">البوكس ممتلئ</span>}
             </button>
-            <div className="product-copy">
-              <h3 dir="ltr">{product.name}</h3>
-              <p>{product.description}</p>
-              <div className="product-meta">
-                <span className="price-text" dir="ltr">
-                  {product.price === null ? "السعر قريباً" : `${product.price} د.ل`}
-                </span>
-                <div className="stepper" aria-label={`كمية ${product.name}`}>
-                  <button
-                    type="button"
-                    aria-label={`إنقاص ${product.name}`}
-                    disabled={quantity === 0}
-                    onClick={() => onRemove(product)}
-                  >
-                    −
-                  </button>
-                  <span aria-live="polite">{quantity}</span>
-                  <button
-                    type="button"
-                    aria-label={`زيادة ${product.name}`}
-                    disabled={disabled}
-                    onClick={(event) => onAdd(product, event.currentTarget)}
-                  >
-                    +
-                  </button>
-                </div>
+
+            <div className="cr-product-details">
+              <div className="cr-product-copy">
+                <span className="cr-product-number" dir="ltr">0{index + 1}</span>
+                <h3 dir="ltr">{product.name}</h3>
+                <p>{product.description}</p>
+                {product.price !== null && <strong className="cr-product-price" dir="ltr">{product.price} د.ل</strong>}
               </div>
+              {quantity === 0 ? (
+                <button className="cr-add-product" type="button" disabled={disabled} onClick={(event) => onAdd(product, event.currentTarget)}>
+                  <span>{disabled ? "مكتمل" : "أضف للطلب"}</span><b aria-hidden="true">+</b>
+                </button>
+              ) : (
+                <div className="cr-stepper" aria-label={`كمية ${product.name}`}>
+                  <button type="button" aria-label={`إنقاص ${product.name}`} onClick={() => onRemove(product)}>−</button>
+                  <span aria-live="polite">{quantity}</span>
+                  <button type="button" aria-label={`زيادة ${product.name}`} disabled={disabled} onClick={(event) => onAdd(product, event.currentTarget)}>+</button>
+                </div>
+              )}
             </div>
           </article>
         );

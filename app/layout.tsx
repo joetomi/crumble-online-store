@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
+import "./storefront.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -23,13 +24,13 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       type: "website",
       locale: "ar_LY",
-      images: [{ url: "/og.jpg", width: 1792, height: 896, alt: "Crumble — Crunch your mood!" }],
+      images: [{ url: "/og.png", width: 1400, height: 700, alt: "Crumble — Crunch your mood!" }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: ["/og.jpg"],
+      images: ["/og.png"],
     },
   };
 }
