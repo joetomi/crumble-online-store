@@ -1,10 +1,10 @@
 {
-  "version": 1,
+  "version": 2,
   "brand": {
     "name": "Crumble",
     "slogan": "Crunch your mood!",
     "heroTitle": "قرمشة تغيّر مزاجك.",
-    "heroText": "كوكيز طازجة، تختارها بطريقتك — قطعة بقطعة أو داخل بوكسك الخاص.",
+    "heroText": "كوكيز طازجة تُخبز بحب. اختر نكهتك كقطعة واحدة أو رتّب بوكسك على مزاجك.",
     "logo": "/brand/crumble-logo.png",
     "linerImage": "/brand/box-liner.jpg"
   },
@@ -23,6 +23,36 @@
       "tiktok": ""
     }
   },
+  "stories": [
+    {
+      "id": "fresh-classics",
+      "title": "طازجة كل يوم",
+      "caption": "ثلاث نكهات، ومزاج واحد سعيد.",
+      "image": "/stories/story-classics.webp",
+      "enabled": true
+    },
+    {
+      "id": "crumble-box",
+      "title": "بوكسك على مزاجك",
+      "caption": "كوّن تشكيلتك من النكهات التي تحبها.",
+      "image": "/stories/story-box.webp",
+      "enabled": true
+    },
+    {
+      "id": "colour-selection",
+      "title": "نكهات لكل مزاج",
+      "caption": "من الكلاسيك إلى الفستق والتيراميسو.",
+      "image": "/stories/story-colours.webp",
+      "enabled": true
+    },
+    {
+      "id": "signature-selection",
+      "title": "تشكيلة Crumble",
+      "caption": "لقطات حقيقية من كوكيزنا الطازجة.",
+      "image": "/stories/story-selection.webp",
+      "enabled": true
+    }
+  ],
   "boxes": [
     {
       "id": "box-4",
@@ -30,7 +60,7 @@
       "capacity": 4,
       "price": 40,
       "enabled": true,
-      "description": "أربع قطع من اختيارك، مرتبة في بوكس Crumble المميز."
+      "description": "أربع قطع من اختيارك داخل بوكس Crumble."
     }
   ],
   "products": [
@@ -38,7 +68,7 @@
       "id": "crumble-classic",
       "name": "Crumble Classic",
       "description": "شوكولاتة غنية وقلب طري.",
-      "image": "/products/crumble-classic.jpg",
+      "image": "/products-v2/crumble-classic.webp",
       "price": null,
       "available": true,
       "category": "classic",
@@ -48,8 +78,8 @@
     {
       "id": "crumble-red-velvet",
       "name": "Crumble Red Velvet",
-      "description": "ريد فيلفيت ناعم ولمسة شوكولاتة بيضاء.",
-      "image": "/products/crumble-red-velvet.jpg",
+      "description": "ريد فيلفيت وشوكولاتة بيضاء.",
+      "image": "/products-v2/crumble-red-velvet.webp",
       "price": null,
       "available": true,
       "category": "red-velvet",
@@ -59,8 +89,8 @@
     {
       "id": "crumble-lotus",
       "name": "Crumble Lotus",
-      "description": "كراميل لوتس بطابع دافئ ومقرمش.",
-      "image": "/products/crumble-lotus.jpg",
+      "description": "لوتس كريمي بطابع دافئ.",
+      "image": "/products-v2/crumble-lotus.webp",
       "price": null,
       "available": true,
       "category": "lotus",
@@ -71,7 +101,7 @@
       "id": "tiramisu",
       "name": "Tiramisu",
       "description": "قهوة وكريمة في لقمة مخملية.",
-      "image": "/products/tiramisu.jpg",
+      "image": "/products-v2/tiramisu.webp",
       "price": null,
       "available": true,
       "category": "special",
@@ -82,7 +112,7 @@
       "id": "cinnabon",
       "name": "Cinnabon",
       "description": "قرفة وكريمة ولمسة كراميل.",
-      "image": "/products/cinnabon.jpg",
+      "image": "/products-v2/cinnabon.webp",
       "price": null,
       "available": true,
       "category": "special",
@@ -92,8 +122,8 @@
     {
       "id": "crumble-pistachio",
       "name": "Crumble Pistachio",
-      "description": "فستق غني بقوام طري ومميز.",
-      "image": "/products/crumble-pistachio.jpg",
+      "description": "فستق غني بقوام طري.",
+      "image": "/products-v2/crumble-pistachio.webp",
       "price": null,
       "available": true,
       "category": "pistachio",
@@ -103,8 +133,8 @@
     {
       "id": "crumble-blue-velvet",
       "name": "Crumble Blue Velvet",
-      "description": "فيلفيت ناعم مع شوكولاتة بيضاء.",
-      "image": "/products/crumble-blue-velvet.jpg",
+      "description": "فيلفيت ناعم وشوكولاتة بيضاء.",
+      "image": "/products-v2/crumble-blue-velvet.webp",
       "price": null,
       "available": true,
       "category": "blue-velvet",

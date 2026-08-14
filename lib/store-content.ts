@@ -5,12 +5,27 @@ export const CONTENT_STORAGE_KEY = "crumble-store-content-v1";
 
 export const defaultContent = defaultContentJson as StoreContent;
 
+function normalizeContent(content: StoreContent): StoreContent {
+  const defaultsById = new Map(defaultContent.products.map((product) => [product.id, product]));
+
+  return {
+    ...content,
+    version: Math.max(content.version ?? 1, defaultContent.version),
+    stories: content.stories?.length ? content.stories : defaultContent.stories,
+    products: content.products.map((product) => {
+      const fallback = defaultsById.get(product.id);
+      const usesLegacyImage = product.image.startsWith("/products/");
+      return usesLegacyImage && fallback ? { ...product, image: fallback.image } : product;
+    }),
+  };
+}
+
 export function readLocalContent(): StoreContent {
   if (typeof window === "undefined") return defaultContent;
 
   try {
     const value = window.localStorage.getItem(CONTENT_STORAGE_KEY);
-    return value ? (JSON.parse(value) as StoreContent) : defaultContent;
+    return value ? normalizeContent(JSON.parse(value) as StoreContent) : defaultContent;
   } catch {
     return defaultContent;
   }
@@ -32,6 +47,7 @@ export function validateContent(value: unknown): value is StoreContent {
   return Boolean(
     data.brand &&
       data.store &&
+      (data.stories === undefined || Array.isArray(data.stories)) &&
       Array.isArray(data.products) &&
       Array.isArray(data.boxes) &&
       data.products.every((product) => product.id && product.name && product.image) &&

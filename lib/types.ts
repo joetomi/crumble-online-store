@@ -19,6 +19,14 @@ export type BoxSize = {
   description: string;
 };
 
+export type Story = {
+  id: string;
+  title: string;
+  caption: string;
+  image: string;
+  enabled: boolean;
+};
+
 export type StoreContent = {
   version: number;
   brand: {
@@ -40,6 +48,7 @@ export type StoreContent = {
     cities: string[];
     social: Record<"instagram" | "facebook" | "tiktok", string>;
   };
+  stories?: Story[];
   boxes: BoxSize[];
   products: Product[];
 };
