@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "brand": {
+    "name": "Crumble",
+    "slogan": "Crunch your mood!",
+    "heroTitle": "قرمشة تغيّر مزاجك.",
+    "heroText": "كوكيز طازجة، تختارها بطريقتك — قطعة بقطعة أو داخل بوكسك الخاص.",
+    "logo": "/brand/crumble-logo.png",
+    "linerImage": "/brand/box-liner.jpg"
+  },
+  "store": {
+    "orderingEnabled": true,
+    "openingTime": "00:00",
+    "closingTime": "23:59",
+    "timezone": "Africa/Tripoli",
+    "closedMessage": "الحجز متوقف حالياً",
+    "closedDescription": "نعود لاستقبال الطلبات قريباً.",
+    "currency": "د.ل",
+    "cities": ["طرابلس", "بنغازي", "مصراتة", "الزاوية", "الخمس"],
+    "social": {
+      "instagram": "",
+      "facebook": "",
+      "tiktok": ""
+    }
+  },
+  "boxes": [
+    {
+      "id": "box-4",
+      "name": "Box 4",
+      "capacity": 4,
+      "price": 40,
+      "enabled": true,
+      "description": "أربع قطع من اختيارك، مرتبة في بوكس Crumble المميز."
+    }
+  ],
+  "products": [
+    {
+      "id": "crumble-classic",
+      "name": "Crumble Classic",
+      "description": "شوكولاتة غنية وقلب طري.",
+      "image": "/products/crumble-classic.jpg",
+      "price": null,
+      "available": true,
+      "category": "classic",
+      "variant": "crumble",
+      "accent": "#9a6749"
+    },
+    {
+      "id": "crumble-red-velvet",
+      "name": "Crumble Red Velvet",
+      "description": "ريد فيلفيت ناعم ولمسة شوكولاتة بيضاء.",
+      "image": "/products/crumble-red-velvet.jpg",
+      "price": null,
+      "available": true,
+      "category": "red-velvet",
+      "variant": "crumble",
+      "accent": "#a8463f"
+    },
+    {
+      "id": "crumble-lotus",
+      "name": "Crumble Lotus",
+      "description": "كراميل لوتس بطابع دافئ ومقرمش.",
+      "image": "/products/crumble-lotus.jpg",
+      "price": null,
+      "available": true,
+      "category": "lotus",
+      "variant": "crumble",
+      "accent": "#bd7b3d"
+    },
+    {
+      "id": "tiramisu",
+      "name": "Tiramisu",
+      "description": "قهوة وكريمة في لقمة مخملية.",
+      "image": "/products/tiramisu.jpg",
+      "price": null,
+      "available": true,
+      "category": "special",
+      "variant": "signature",
+      "accent": "#74503b"
+    },
+    {
+      "id": "cinnabon",
+      "name": "Cinnabon",
+      "description": "قرفة وكريمة ولمسة كراميل.",
+      "image": "/products/cinnabon.jpg",
+      "price": null,
+      "available": true,
+      "category": "special",
+      "variant": "signature",
+      "accent": "#c18b54"
+    },
+    {
+      "id": "crumble-pistachio",
+      "name": "Crumble Pistachio",
+      "description": "فستق غني بقوام طري ومميز.",
+      "image": "/products/crumble-pistachio.jpg",
+      "price": null,
+      "available": true,
+      "category": "pistachio",
+      "variant": "crumble",
+      "accent": "#77875b"
+    },
+    {
+      "id": "crumble-blue-velvet",
+      "name": "Crumble Blue Velvet",
+      "description": "فيلفيت ناعم مع شوكولاتة بيضاء.",
+      "image": "/products/crumble-blue-velvet.jpg",
+      "price": null,
+      "available": true,
+      "category": "blue-velvet",
+      "variant": "crumble",
+      "accent": "#759066"
+    }
+  ]
+}
