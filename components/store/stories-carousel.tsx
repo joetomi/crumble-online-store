@@ -19,8 +19,6 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
   // Check reduced motion preference
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
     const listener = (event: MediaQueryListEvent) => {
       setPrefersReducedMotion(event.matches);
     };
@@ -79,8 +77,6 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
 
   const titleText = currentItem.titleAr || currentItem.title || currentItem.titleEn || "";
   const captionText = currentItem.captionAr || currentItem.caption || currentItem.captionEn || "";
-  const postUrl = currentItem.postUrl || "#order";
-
   return (
     <section className="sc-section" aria-label="أحدث الإعلانات والمنشورات">
       {/* Section Header */}
@@ -139,19 +135,19 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
 
         {/* Invisible Left/Right Story Navigation Zones */}
         <div className="sc-nav-zones">
-          {/* Physical Left Zone -> Next Story */}
+          {/* Physical Left Zone -> Previous Story */}
           <button
             type="button"
             className="sc-nav-zone sc-nav-left"
-            onClick={handleNext}
-            aria-label="المنشور التالي"
+            onClick={handlePrev}
+            aria-label="المنشور السابق"
           />
-          {/* Physical Right Zone -> Previous Story */}
+          {/* Physical Right Zone -> Next Story */}
           <button
             type="button"
             className="sc-nav-zone sc-nav-right"
-            onClick={handlePrev}
-            aria-label="المنشور السابق"
+            onClick={handleNext}
+            aria-label="المنشور التالي"
           />
         </div>
 

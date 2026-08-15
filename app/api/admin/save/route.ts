@@ -1,95 +1,79 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import { exec } from "child_process";
-import { promisify } from "util";
+import { hasValidAdminSession } from "@/lib/admin-auth";
 import { validateContent } from "@/lib/store-content";
 
-const execAsync = promisify(exec);
+type GithubFile = { sha?: string };
+
+function encodeBase64(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
 
 export async function POST(request: Request) {
+  if (!(await hasValidAdminSession(request))) {
+    return NextResponse.json({ success: false, error: "انتهت جلسة الإدارة. سجل الدخول مجدداً." }, { status: 401 });
+  }
+
+  const token = process.env.GITHUB_TOKEN;
+  const repository = process.env.GITHUB_REPOSITORY ?? "joetomi/crumble-online-store";
+  const branch = process.env.GITHUB_BRANCH ?? "main";
+  const filePath = "data/store.json";
+
+  if (!token) {
+    return NextResponse.json({ success: false, error: "ربط GitHub غير مكتمل بعد." }, { status: 503 });
+  }
+
   try {
-    const body = await request.json();
+    const body = (await request.json()) as unknown;
 
     if (!validateContent(body)) {
-      return NextResponse.json({ success: false, error: "محتوى غير صالح" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "محتوى المتجر غير صالح." }, { status: 400 });
     }
 
-    const jsonString = JSON.stringify(body, null, 2);
-    const filePath = path.join(process.cwd(), "data", "store.json");
+    const endpoint = `https://api.github.com/repos/${repository}/contents/${filePath}`;
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "crumble-store-admin",
+    };
+    const currentResponse = await fetch(`${endpoint}?ref=${encodeURIComponent(branch)}`, {
+      headers,
+      cache: "no-store",
+    });
+    const currentFile = (await currentResponse.json().catch(() => ({}))) as GithubFile;
 
-    // 1. Write updated JSON to data/store.json
-    fs.writeFileSync(filePath, jsonString, "utf-8");
-
-    let pushedToGithub = false;
-
-    // 2. If GITHUB_TOKEN is available, commit directly via GitHub API
-    const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-    const repoOwner = "joetomi";
-    const repoName = "crumble-online-store";
-    const filePathInRepo = "data/store.json";
-
-    if (token) {
-      try {
-        const getFileRes = await fetch(
-          `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePathInRepo}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/vnd.github.v3+json",
-              "User-Agent": "Next.js-Admin-Save",
-            },
-          },
-        );
-        const fileData = (await getFileRes.json()) as { sha?: string };
-
-        if (fileData?.sha) {
-          const putRes = await fetch(
-            `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePathInRepo}`,
-            {
-              method: "PUT",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/vnd.github.v3+json",
-                "Content-Type": "application/json",
-                "User-Agent": "Next.js-Admin-Save",
-              },
-              body: JSON.stringify({
-                message: "تعديل من الادارة",
-                content: Buffer.from(jsonString).toString("base64"),
-                sha: fileData.sha,
-              }),
-            },
-          );
-
-          if (putRes.ok) {
-            pushedToGithub = true;
-          }
-        }
-      } catch (ghErr) {
-        console.error("GitHub API commit error:", ghErr);
-      }
+    if (!currentResponse.ok || !currentFile.sha) {
+      return NextResponse.json({ success: false, error: "تعذر قراءة ملف المتجر من GitHub." }, { status: 502 });
     }
 
-    // 3. Fallback: If running in local Node environment, use git CLI
-    if (!pushedToGithub) {
-      try {
-        await execAsync(`git add data/store.json && git commit -m "تعديل من الادارة" && git push`);
-        pushedToGithub = true;
-      } catch (cliErr) {
-        console.log("Local git push notice:", cliErr);
-      }
+    const json = `${JSON.stringify(body, null, 2)}\n`;
+    const updateResponse = await fetch(endpoint, {
+      method: "PUT",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "تحديث محتوى متجر Crumble من لوحة التحكم",
+        content: encodeBase64(json),
+        sha: currentFile.sha,
+        branch,
+      }),
+    });
+    const result = (await updateResponse.json().catch(() => ({}))) as { commit?: { sha?: string } };
+
+    if (!updateResponse.ok || !result.commit?.sha) {
+      return NextResponse.json({ success: false, error: "رفض GitHub التحديث. تحقق من صلاحية الربط." }, { status: 502 });
     }
 
     return NextResponse.json({
       success: true,
-      message: pushedToGithub
-        ? "تم حفظ التغييرات وإعادة الإطلاق على Vercel بنجاح!"
-        : "تم حفظ التغييرات بنجاح!",
-      pushed: pushedToGithub,
+      message: "تم رفع التغييرات إلى GitHub، وبدأ Vercel إعادة إطلاق الموقع.",
+      pushed: true,
+      commit: result.commit.sha,
     });
   } catch (error) {
-    console.error("Save endpoint error:", error);
-    return NextResponse.json({ success: false, error: "فشل حفظ التغييرات" }, { status: 500 });
+    console.error("Admin publish failed", error);
+    return NextResponse.json({ success: false, error: "تعذر نشر التغييرات حالياً." }, { status: 500 });
   }
 }

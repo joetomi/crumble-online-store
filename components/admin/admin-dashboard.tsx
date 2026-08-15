@@ -1,13 +1,11 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  clearLocalContent,
   defaultContent,
   readLocalContent,
-  validateContent,
   writeLocalContent,
 } from "@/lib/store-content";
 import type { BoxSize, Product, Story, StoreContent } from "@/lib/types";
@@ -19,7 +17,7 @@ export function AdminDashboard() {
   const [section, setSection] = useState<AdminSection>("products");
   const [notice, setNotice] = useState("");
   const [dirty, setDirty] = useState(false);
-  const importRef = useRef<HTMLInputElement>(null);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     const sync = () => setContent(readLocalContent());
@@ -38,40 +36,21 @@ export function AdminDashboard() {
 
   async function savePreview() {
     writeLocalContent(content);
-    setDirty(false);
+    setPublishing(true);
     try {
       const res = await fetch("/api/admin/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(content),
       });
-      const data = (await res.json()) as { message?: string };
-      flash(data.message || "تم حفظ التغييرات بنجاح!");
-    } catch {
-      flash("تم حفظ التغييرات بنجاح!");
-    }
-  }
-
-  function exportBackup() {
-    const blob = new Blob([JSON.stringify(content, null, 2)], { type: "application/json" });
-    const href = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = href;
-    link.download = "store-backup.json";
-    link.click();
-    URL.revokeObjectURL(href);
-    flash("تم تحميل النسخة الاحتياطية بنجاح");
-  }
-
-  async function importBackup(file: File) {
-    try {
-      const parsed = JSON.parse(await file.text()) as unknown;
-      if (!validateContent(parsed)) throw new Error("Invalid content");
-      update(parsed);
-      setSection("products");
-      flash("تم استعادة النسخة بنجاح — راجع المحتوى ثم احفظ التغييرات");
-    } catch {
-      flash("الملف المستورد غير صالح");
+      const data = (await res.json()) as { success?: boolean; message?: string; error?: string };
+      if (!res.ok || !data.success) throw new Error(data.error || "تعذر نشر التغييرات");
+      setDirty(false);
+      flash(data.message || "تم رفع التغييرات وبدأ تحديث الموقع.");
+    } catch (saveError) {
+      flash(saveError instanceof Error ? saveError.message : "تعذر رفع التغييرات.");
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -210,9 +189,9 @@ export function AdminDashboard() {
             type="button"
             className={`admin-save ${dirty ? "is-dirty" : "is-disabled"}`}
             onClick={savePreview}
-            disabled={!dirty}
+            disabled={!dirty || publishing}
           >
-            حفظ التغييرات
+            {publishing ? "جارٍ النشر..." : "حفظ ونشر التغييرات"}
           </button>
         </div>
       </div>
