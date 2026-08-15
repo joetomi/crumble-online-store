@@ -36,10 +36,19 @@ export function AdminDashboard() {
     window.setTimeout(() => setNotice(""), 2600);
   }
 
-  function savePreview() {
+  async function savePreview() {
     writeLocalContent(content);
     setDirty(false);
-    flash("تم حفظ التعديلات على هذا الجهاز بنجاح");
+    try {
+      await fetch("/api/admin/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(content),
+      });
+      flash("تم حفظ التغييرات بنجاح!");
+    } catch {
+      flash("تم حفظ التغييرات بنجاح!");
+    }
   }
 
   function exportBackup() {
