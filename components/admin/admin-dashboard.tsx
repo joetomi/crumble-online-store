@@ -40,12 +40,13 @@ export function AdminDashboard() {
     writeLocalContent(content);
     setDirty(false);
     try {
-      await fetch("/api/admin/save", {
+      const res = await fetch("/api/admin/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(content),
       });
-      flash("تم حفظ التغييرات بنجاح!");
+      const data = (await res.json()) as { message?: string };
+      flash(data.message || "تم حفظ التغييرات بنجاح!");
     } catch {
       flash("تم حفظ التغييرات بنجاح!");
     }
