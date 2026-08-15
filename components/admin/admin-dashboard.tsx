@@ -224,8 +224,14 @@ export function AdminDashboard() {
                     </div>
                     <label><span>الوصف القصير</span><textarea rows={2} value={product.description} onChange={(event) => updateProduct(index, { description: event.target.value })} placeholder="وصف مكونات النكهة..." /></label>
                     <div className="editor-footer">
-                      <label className="toggle-field"><input type="checkbox" checked={product.available} onChange={(event) => updateProduct(index, { available: event.target.checked })} /><span>متوفر في المتجر</span></label>
-                      <button type="button" className="danger-link" onClick={() => removeProduct(index)}>حذف النكهة</button>
+                      <label className={`action-toggle-btn ${product.available ? "is-available" : "is-unavailable"}`}>
+                        <input type="checkbox" checked={product.available} onChange={(event) => updateProduct(index, { available: event.target.checked })} hidden />
+                        <span className="status-dot" />
+                        <span>{product.available ? "متوفر في المتجر" : "غير متوفر"}</span>
+                      </label>
+                      <button type="button" className="action-delete-btn" onClick={() => removeProduct(index)}>
+                        <span>🗑️ حذف النكهة</span>
+                      </button>
                     </div>
                   </div>
                 </article>
@@ -251,8 +257,14 @@ export function AdminDashboard() {
                   <label><span>السعر (د.ل)</span><input type="number" min="0" value={box.price} onChange={(event) => updateBox(index, { price: Number(event.target.value) })} /></label>
                   <label><span>الوصف</span><textarea rows={2} value={box.description} onChange={(event) => updateBox(index, { description: event.target.value })} /></label>
                   <div className="editor-footer">
-                    <label className="toggle-field"><input type="checkbox" checked={box.enabled} onChange={(event) => updateBox(index, { enabled: event.target.checked })} /><span>ظاهر في المتجر</span></label>
-                    <button type="button" className="danger-link" onClick={() => removeBox(index)}>حذف البوكس</button>
+                    <label className={`action-toggle-btn ${box.enabled ? "is-available" : "is-unavailable"}`}>
+                      <input type="checkbox" checked={box.enabled} onChange={(event) => updateBox(index, { enabled: event.target.checked })} hidden />
+                      <span className="status-dot" />
+                      <span>{box.enabled ? "ظاهر في المتجر" : "مخفي في المتجر"}</span>
+                    </label>
+                    <button type="button" className="action-delete-btn" onClick={() => removeBox(index)}>
+                      <span>🗑️ حذف البوكس</span>
+                    </button>
                   </div>
                 </article>
               ))}
@@ -282,8 +294,14 @@ export function AdminDashboard() {
                     <label><span>عنوان الستوري</span><input type="text" value={story.titleAr || story.title || ""} onChange={(event) => updateStory(index, { titleAr: event.target.value, title: event.target.value })} placeholder="عنوان العرض..." /></label>
                     <label><span>الوصف القصير</span><textarea rows={2} value={story.captionAr || story.caption || ""} onChange={(event) => updateStory(index, { captionAr: event.target.value, caption: event.target.value })} placeholder="تفاصيل العرض..." /></label>
                     <div className="editor-footer">
-                      <label className="toggle-field"><input type="checkbox" checked={story.enabled !== false} onChange={(event) => updateStory(index, { enabled: event.target.checked })} /><span>ظاهر في الستوريات</span></label>
-                      <button type="button" className="danger-link" onClick={() => removeStory(index)}>حذف الستوري</button>
+                      <label className={`action-toggle-btn ${story.enabled !== false ? "is-available" : "is-unavailable"}`}>
+                        <input type="checkbox" checked={story.enabled !== false} onChange={(event) => updateStory(index, { enabled: event.target.checked })} hidden />
+                        <span className="status-dot" />
+                        <span>{story.enabled !== false ? "ظاهر في الستوريات" : "مخفي في الستوريات"}</span>
+                      </label>
+                      <button type="button" className="action-delete-btn" onClick={() => removeStory(index)}>
+                        <span>🗑️ حذف الستوري</span>
+                      </button>
                     </div>
                   </div>
                 </article>

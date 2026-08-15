@@ -663,46 +663,92 @@ img {
 }
 
 .editor-footer {
-  margin-top: 6px;
-  padding-top: 12px;
+  margin-top: 10px;
+  padding-top: 14px;
   border-top: 1px solid rgba(82, 53, 37, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
 }
 
-.toggle-field {
-  display: flex;
+.action-toggle-btn {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  cursor: pointer;
-}
-
-.toggle-field span {
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  border: 1.5px solid transparent;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.action-toggle-btn.is-available {
+  background: #EAF4EC;
+  border-color: rgba(77, 122, 84, 0.25);
+  color: #2D5A34;
+}
+
+.action-toggle-btn.is-available:hover {
+  background: #DCEDE0;
+}
+
+.action-toggle-btn.is-unavailable {
+  background: #F4EFEA;
+  border-color: rgba(82, 53, 37, 0.15);
+  color: #856F61;
+}
+
+.action-toggle-btn.is-unavailable:hover {
+  background: #EBE4DD;
   color: #2D1A10;
 }
 
-.toggle-field input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #AA7858;
-  cursor: pointer;
+.action-toggle-btn .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.danger-link {
-  background: transparent;
-  border: 0;
-  color: #dc2626;
+.action-toggle-btn.is-available .status-dot {
+  background: #2D5A34;
+  box-shadow: 0 0 0 3px rgba(45, 90, 52, 0.15);
+}
+
+.action-toggle-btn.is-unavailable .status-dot {
+  background: #9A887B;
+}
+
+.action-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 12px;
+  background: #FFF0EE;
+  border: 1.5px solid rgba(184, 63, 53, 0.2);
+  color: #B83F35;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  padding: 4px 8px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
-.danger-link:hover {
-  text-decoration: underline;
+.action-delete-btn:hover {
+  background: #B83F35;
+  color: white;
+  border-color: #B83F35;
 }
 
 /* Box Editor Grid */
@@ -972,8 +1018,9 @@ img {
   }
 
   .editor-footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
   }
 }
