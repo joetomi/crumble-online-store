@@ -176,6 +176,16 @@ export function AdminDashboard() {
     reader.readAsDataURL(file);
   }
 
+  function uploadStoryImage(index: number, file: File) {
+    if (file.size > 3_500_000) {
+      flash("حجم الصورة كبير جداً، يفضل اختيار صورة أقل من 3MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => updateStory(index, { image: String(reader.result) });
+    reader.readAsDataURL(file);
+  }
+
   const normalizedCities = normalizeCities(content.store.cities);
 
   function addCity() {
