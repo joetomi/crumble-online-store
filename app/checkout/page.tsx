@@ -250,7 +250,13 @@ export default function CheckoutPage() {
 
                 <label>
                   <span>رقم الهاتف (مربوط بواتساب)</span>
-                  <div className="whatsapp-input-wrapper">
+                  <div className="whatsapp-input-group">
+                    <span className="whatsapp-prefix-badge" title="مربوط بـ WhatsApp">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+                        <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.769.462 3.498 1.341 5.022l-1.424 5.203 5.326-1.396c1.468.801 3.125 1.223 4.743 1.224h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.668-1.038-5.176-2.924-7.062a9.923 9.923 0 0 0-7.065-2.915z" />
+                      </svg>
+                      <small>واتساب</small>
+                    </span>
                     <input
                       value={customer.phone}
                       onChange={(event) => setCustomer({ ...customer, phone: event.target.value })}
@@ -260,11 +266,6 @@ export default function CheckoutPage() {
                       dir="ltr"
                       aria-invalid={Boolean(errors.phone)}
                     />
-                    <span className="whatsapp-icon-badge" title="مربوط بـ WhatsApp">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
-                        <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.769.462 3.498 1.341 5.022l-1.424 5.203 5.326-1.396c1.468.801 3.125 1.223 4.743 1.224h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.668-1.038-5.176-2.924-7.062a9.923 9.923 0 0 0-7.065-2.915z" />
-                      </svg>
-                    </span>
                   </div>
                   {errors.phone && <small>{errors.phone}</small>}
                 </label>
