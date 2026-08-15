@@ -35,7 +35,9 @@ export default function AdminPage() {
       <main className="admin-auth-shell" dir="rtl">
         <div className="admin-auth-card">
           <div className="admin-auth-header">
-            <span className="admin-lock-badge">🔒</span>
+            <div className="admin-logo-circle">
+              <img src="/brand/crumble-logo.png" alt="شعار Crumble" />
+            </div>
             <h1>لوحة إدارة متجر Crumble</h1>
             <p>أدخل كلمة المرور لدخول لوحة التحكم الشاملة (الافتراضي: admin)</p>
           </div>
