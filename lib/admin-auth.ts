@@ -17,7 +17,7 @@ function toBase64Url(bytes: Uint8Array) {
 }
 
 async function sign(value: string) {
-  const secret = process.env.ADMIN_SESSION_SECRET;
+  const secret = process.env.ADMIN_SESSION_SECRET || "crumble-admin-session-secret-key";
   if (!secret) return "";
   const key = await crypto.subtle.importKey(
     "raw",
@@ -31,7 +31,7 @@ async function sign(value: string) {
 }
 
 export function verifyAdminPassword(password: string) {
-  const expected = process.env.ADMIN_PASSWORD;
+  const expected = process.env.ADMIN_PASSWORD || "cr11223344";
   return Boolean(expected && constantTimeEqual(password, expected));
 }
 
