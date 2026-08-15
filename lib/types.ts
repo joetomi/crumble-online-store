@@ -79,7 +79,12 @@ export function normalizeCities(cities: (string | CityOption)[] = []): CityOptio
   });
 }
 
-export type OrderMode = "pieces" | "box";
+export type CartSession = {
+  mode: OrderMode;
+  quantities: Record<string, number>;
+  boxItems: string[];
+  activeBoxId: string;
+};
 
 export type Customer = {
   name: string;

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { BoxSize, Customer, OrderMode, Product, StoreContent } from "@/lib/types";
 import { normalizeCities } from "@/lib/types";
+import { saveCartSession } from "@/lib/cart-session";
 
 type OrderSheetProps = {
   content: StoreContent;
@@ -210,7 +211,15 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
             <button
               className="primary-action sheet-submit"
               type="button"
-              onClick={() => setStepView("checkout")}
+              onClick={() => {
+                saveCartSession({
+                  mode,
+                  quantities,
+                  boxItems,
+                  activeBoxId: box.id,
+                });
+                window.location.href = "/checkout";
+              }}
             >
               مواصلة وإكمال الطلب ←
             </button>
