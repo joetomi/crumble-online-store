@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { BoxSize, Customer, OrderMode, Product, StoreContent } from "@/lib/types";
 
 type OrderSheetProps = {
@@ -20,6 +20,18 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
   const [errors, setErrors] = useState<Partial<Customer>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [orderId, setOrderId] = useState("");
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    const prevTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.touchAction = prevTouchAction;
+    };
+  }, []);
 
   const items = useMemo(() => {
     const source = mode === "pieces"
@@ -82,7 +94,16 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
   }
 
   return (
-    <div className="sheet-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div
+      className="sheet-backdrop"
+      role="presentation"
+      onClick={(event) => event.target === event.currentTarget && onClose()}
+      onTouchMove={(event) => {
+        if (event.target === event.currentTarget) {
+          event.preventDefault();
+        }
+      }}
+    >
       <section className="order-sheet" role="dialog" aria-modal="true" aria-labelledby="order-sheet-title">
         <button className="sheet-close" type="button" onClick={onClose} aria-label="إغلاق">×</button>
 
