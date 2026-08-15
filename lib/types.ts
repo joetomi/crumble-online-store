@@ -32,6 +32,13 @@ export type Story = {
   enabled: boolean;
 };
 
+export type CityOption = {
+  id: string;
+  name: string;
+  deliveryFee: number;
+  estimatedTime: string;
+};
+
 export type StoreContent = {
   version: number;
   brand: {
@@ -50,13 +57,27 @@ export type StoreContent = {
     closedMessage: string;
     closedDescription: string;
     currency: string;
-    cities: string[];
+    cities: (string | CityOption)[];
     social: Record<"instagram" | "facebook" | "tiktok", string>;
   };
   stories?: Story[];
   boxes: BoxSize[];
   products: Product[];
 };
+
+export function normalizeCities(cities: (string | CityOption)[] = []): CityOption[] {
+  return cities.map((item, index) => {
+    if (typeof item === "string") {
+      return {
+        id: `city-${index}-${item}`,
+        name: item,
+        deliveryFee: 10,
+        estimatedTime: "خلال 24 - 48 ساعة",
+      };
+    }
+    return item;
+  });
+}
 
 export type OrderMode = "pieces" | "box";
 

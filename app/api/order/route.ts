@@ -1,6 +1,7 @@
 import { defaultContent } from "@/lib/store-content";
 import { getStoreStatus } from "@/lib/store-status";
 import type { Customer, OrderMode } from "@/lib/types";
+import { normalizeCities } from "@/lib/types";
 
 type IncomingOrder = {
   mode?: OrderMode;
@@ -29,7 +30,8 @@ export async function POST(request: Request) {
     if (!data.mode || !name || phone.replace(/\D/g, "").length < 8 || !city) {
       return Response.json({ error: "invalid_order" }, { status: 400 });
     }
-    if (!defaultContent.store.cities.includes(city)) {
+    const validCities = normalizeCities(defaultContent.store.cities);
+    if (!validCities.some((c) => c.name === city)) {
       return Response.json({ error: "invalid_city" }, { status: 400 });
     }
 

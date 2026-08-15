@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { BoxSize, Customer, OrderMode, Product, StoreContent } from "@/lib/types";
+import { normalizeCities } from "@/lib/types";
 
 type OrderSheetProps = {
   content: StoreContent;
@@ -20,6 +21,7 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
   const [errors, setErrors] = useState<Partial<Customer>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [orderId, setOrderId] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"cash">("cash");
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
@@ -32,6 +34,9 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
       document.body.style.touchAction = prevTouchAction;
     };
   }, []);
+
+  const citiesList = useMemo(() => normalizeCities(content.store.cities), [content.store.cities]);
+  const selectedCityObj = useMemo(() => citiesList.find((c) => c.name === customer.city), [citiesList, customer.city]);
 
   const items = useMemo(() => {
     const source = mode === "pieces"
@@ -57,17 +62,23 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
 
   const totalPieces = items.reduce((total, item) => total + item.quantity, 0);
   const hasUnknownPrice = items.some((item) => item.price === null);
-  const totalPrice = mode === "box"
+  const productsTotal = mode === "box"
     ? box.price
     : hasUnknownPrice
       ? null
       : items.reduce((total, item) => total + (item.price ?? 0) * item.quantity, 0);
 
+  const deliveryFee = selectedCityObj ? selectedCityObj.deliveryFee : 0;
+  const estimatedTime = selectedCityObj ? selectedCityObj.estimatedTime : "اختر المدينة أولاً";
+  const grandTotal = productsTotal !== null ? productsTotal + deliveryFee : null;
+
+  const isCard1Valid = customer.name.trim().length >= 2 && customer.phone.replace(/\D/g, "").length >= 8 && Boolean(customer.city);
+
   function validate() {
     const next: Partial<Customer> = {};
-    if (customer.name.trim().length < 2) next.name = "اكتب الاسم";
-    if (customer.phone.replace(/\D/g, "").length < 8) next.phone = "اكتب رقم هاتف صحيح";
-    if (!customer.city) next.city = "اختر المدينة";
+    if (customer.name.trim().length < 2) next.name = "اكتب الاسم الرسمي";
+    if (customer.phone.replace(/\D/g, "").length < 8) next.phone = "اكتب رقم هاتف صحيح مربوط بواتساب";
+    if (!customer.city) next.city = "اختر المدينة للتوصيل";
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -87,7 +98,11 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
           items,
           box: mode === "box" ? box : undefined,
           totalPieces,
-          totalPrice,
+          productsTotal,
+          deliveryFee,
+          estimatedTime,
+          grandTotal,
+          paymentMethod: "كاش عند الاستلام",
         }),
       });
       const result = (await response.json()) as { orderId?: string };
@@ -115,75 +130,217 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
 
         {status === "success" ? (
           <div className="success-state">
-            <span className="success-cookie" aria-hidden="true">🍪</span>
-            <span className="eyebrow">تم بنجاح</span>
-            <h2 id="order-sheet-title">تم استلام طلبك</h2>
-            <p>سنتواصل معك لتأكيد الطلب.</p>
+            <div className="success-icon-badge">🍪</div>
+            <span className="eyebrow">تم تأكيد الطلب بنجاح</span>
+            <h2 id="order-sheet-title">شكراً لك، تم استلام طلبك!</h2>
+            <p>سنتواصل معك عبر واتساب لتأكيد الشحن والتوصيل.</p>
             <div className="order-number" dir="ltr">#{orderId}</div>
+
+            {/* Final Order Confirmation Card Summary */}
+            <div className="confirmation-summary-card">
+              <div className="summary-row">
+                <span>اسم العميل</span>
+                <strong>{customer.name}</strong>
+              </div>
+              <div className="summary-row">
+                <span>رقم الواتساب</span>
+                <strong dir="ltr">{customer.phone}</strong>
+              </div>
+              <div className="summary-row">
+                <span>مدينة التوصيل</span>
+                <strong>{customer.city} ({estimatedTime})</strong>
+              </div>
+              <div className="summary-row">
+                <span>طريقة الدفع</span>
+                <strong>الدفع عند الاستلام (كاش)</strong>
+              </div>
+              <div className="summary-divider" />
+              <div className="summary-row">
+                <span>مجموع المنتجات</span>
+                <span dir="ltr">{productsTotal} {content.store.currency}</span>
+              </div>
+              <div className="summary-row">
+                <span>سعر التوصيل</span>
+                <span dir="ltr">{deliveryFee} {content.store.currency}</span>
+              </div>
+              <div className="summary-row summary-row--total">
+                <span>المجموع النهائي</span>
+                <strong dir="ltr">{grandTotal} {content.store.currency}</strong>
+              </div>
+            </div>
+
             <button className="primary-action" type="button" onClick={onNewOrder}>طلب جديد</button>
           </div>
         ) : (
-          <form onSubmit={submitOrder} noValidate>
+          <form onSubmit={submitOrder} noValidate className="checkout-cards-flow">
             <div className="sheet-title">
-              <span className="eyebrow">الخطوة الأخيرة</span>
-              <h2 id="order-sheet-title">أكد طلبك</h2>
-              <p>بيانات بسيطة حتى نتواصل معك.</p>
+              <span className="eyebrow">خطوات تأكيد الطلب</span>
+              <h2 id="order-sheet-title">إكمال البيانات والفاتورة</h2>
+              <p>يرجى تعبئة بطاقة معلومات التوصيل لفتح الفاتورة وحساب التوصيل.</p>
             </div>
 
-            <div className="order-summary">
-              <div className="summary-heading">
-                <div><span>نوع الطلب</span><b>{mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
-                <strong dir="ltr">{mode === "box" ? box.name : `${totalPieces} قطع`}</strong>
+            {/* CARD 1: Customer Personal Info & Delivery Location */}
+            <article className={`checkout-card ${isCard1Valid ? "is-complete" : "is-active"}`}>
+              <div className="checkout-card-header">
+                <span className="card-step-badge">1</span>
+                <div>
+                  <h3>المعلومات الشخصية والتوصيل</h3>
+                  <p>أدخل اسمك ورقم الهاتف المربوط بواتساب والمدينة</p>
+                </div>
               </div>
-              <ul className="summary-items-list">
-                {items.map((item) => (
-                  <li key={item.id} className="summary-item-row">
-                    <div className="summary-item-left">
-                      <img src={item.image} alt={item.name} className="summary-item-thumb" />
-                      <div className="summary-item-details">
-                        <span className="summary-item-name">{item.name}</span>
-                        <span className="summary-item-qty">×{item.quantity}</span>
+
+              <div className="customer-fields">
+                <label>
+                  <span>الاسم الكريم</span>
+                  <input
+                    value={customer.name}
+                    onChange={(event) => setCustomer({ ...customer, name: event.target.value })}
+                    placeholder="اسمك الكريم الكامل..."
+                    autoComplete="name"
+                    aria-invalid={Boolean(errors.name)}
+                  />
+                  {errors.name && <small>{errors.name}</small>}
+                </label>
+
+                <label>
+                  <span>رقم الهاتف (مربوط بواتساب)</span>
+                  <div className="whatsapp-input-wrapper">
+                    <input
+                      value={customer.phone}
+                      onChange={(event) => setCustomer({ ...customer, phone: event.target.value })}
+                      placeholder="09XXXXXXXX"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      dir="ltr"
+                      aria-invalid={Boolean(errors.phone)}
+                    />
+                    <span className="whatsapp-icon-badge" title="مربوط بـ WhatsApp">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+                        <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.769.462 3.498 1.341 5.022l-1.424 5.203 5.326-1.396c1.468.801 3.125 1.223 4.743 1.224h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.668-1.038-5.176-2.924-7.062a9.923 9.923 0 0 0-7.065-2.915z" />
+                      </svg>
+                    </span>
+                  </div>
+                  {errors.phone && <small>{errors.phone}</small>}
+                </label>
+
+                <label>
+                  <span>مدينة التوصيل</span>
+                  <select
+                    value={customer.city}
+                    onChange={(event) => setCustomer({ ...customer, city: event.target.value })}
+                    aria-invalid={Boolean(errors.city)}
+                  >
+                    <option value="">اختر مدينتك...</option>
+                    {citiesList.map((cityObj) => (
+                      <option key={cityObj.id} value={cityObj.name}>
+                        {cityObj.name} (توصيل {cityObj.deliveryFee} {content.store.currency})
+                      </option>
+                    ))}
+                  </select>
+                  {errors.city && <small>{errors.city}</small>}
+                </label>
+              </div>
+            </article>
+
+            {/* CARD 2: Invoice, Delivery Fee & Payment Method (Unlocked when Card 1 is valid) */}
+            <article className={`checkout-card ${isCard1Valid ? "is-unlocked" : "is-locked"}`}>
+              <div className="checkout-card-header">
+                <span className="card-step-badge">2</span>
+                <div>
+                  <h3>الفاتورة وخيارات الدفع</h3>
+                  <p>تفاصيل الأصناف ورسوم التوصيل والمجموع النهائي</p>
+                </div>
+              </div>
+
+              {!isCard1Valid ? (
+                <div className="locked-card-banner">
+                  <span className="lock-icon">🔒</span>
+                  <span>أكمل بطاقة المعلومات (الاسم، الواتساب، والمدينة) أعلاه لفتح الفاتورة.</span>
+                </div>
+              ) : (
+                <>
+                  <div className="order-summary">
+                    <div className="summary-heading">
+                      <div><span>نوع الطلب</span><b>{mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
+                      <strong dir="ltr">{mode === "box" ? box.name : `${totalPieces} قطع`}</strong>
+                    </div>
+
+                    <ul className="summary-items-list">
+                      {items.map((item) => (
+                        <li key={item.id} className="summary-item-row">
+                          <div className="summary-item-left">
+                            <img src={item.image} alt={item.name} className="summary-item-thumb" />
+                            <div className="summary-item-details">
+                              <span className="summary-item-name">{item.name}</span>
+                              <span className="summary-item-qty">×{item.quantity}</span>
+                            </div>
+                          </div>
+                          <div className="summary-item-price" dir="ltr">
+                            {item.price !== null && item.price !== undefined
+                              ? `${item.price * item.quantity} ${content.store.currency}`
+                              : "يُحدد لاحقاً"}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="summary-breakdown">
+                      <div className="summary-breakdown-row">
+                        <span>مجموع الأصناف</span>
+                        <b dir="ltr">{productsTotal === null ? "يُحدد لاحقاً" : `${productsTotal} ${content.store.currency}`}</b>
+                      </div>
+                      <div className="summary-breakdown-row">
+                        <div>
+                          <span>سعر التوصيل ({customer.city})</span>
+                          <small className="estimated-time-tag">⏱️ {estimatedTime}</small>
+                        </div>
+                        <b dir="ltr">{deliveryFee} {content.store.currency}</b>
+                      </div>
+                      <div className="summary-total-row">
+                        <span>المجموع النهائي</span>
+                        <strong dir="ltr">{grandTotal === null ? "يُحدد عند التأكيد" : `${grandTotal} ${content.store.currency}`}</strong>
                       </div>
                     </div>
-                    <div className="summary-item-price" dir="ltr">
-                      {item.price !== null && item.price !== undefined
-                        ? `${item.price * item.quantity} ${content.store.currency}`
-                        : "يُحدد لاحقاً"}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <div className="summary-total">
-                <span>الإجمالي</span>
-                <b dir="ltr">{totalPrice === null ? "يُحدد عند التأكيد" : `${totalPrice} ${content.store.currency}`}</b>
-              </div>
-            </div>
+                  </div>
 
-            <div className="customer-fields">
-              <label>
-                <span>الاسم</span>
-                <input value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} placeholder="اسمك الكريم" autoComplete="name" aria-invalid={Boolean(errors.name)} />
-                {errors.name && <small>{errors.name}</small>}
-              </label>
-              <label>
-                <span>رقم الهاتف</span>
-                <input value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} placeholder="09XXXXXXXX" inputMode="tel" autoComplete="tel" dir="ltr" aria-invalid={Boolean(errors.phone)} />
-                {errors.phone && <small>{errors.phone}</small>}
-              </label>
-              <label>
-                <span>المدينة</span>
-                <select value={customer.city} onChange={(event) => setCustomer({ ...customer, city: event.target.value })} aria-invalid={Boolean(errors.city)}>
-                  <option value="">اختر المدينة</option>
-                  {content.store.cities.map((city) => <option key={city} value={city}>{city}</option>)}
-                </select>
-                {errors.city && <small>{errors.city}</small>}
-              </label>
-            </div>
+                  {/* Payment Method Selector Card */}
+                  <div className="payment-method-section">
+                    <span className="payment-section-title">طريقة الدفع المتاحة:</span>
+                    <div className="payment-options-grid">
+                      <label className={`payment-option-card ${paymentMethod === "cash" ? "is-selected" : ""}`}>
+                        <input
+                          type="radio"
+                          name="payment"
+                          value="cash"
+                          checked={paymentMethod === "cash"}
+                          onChange={() => setPaymentMethod("cash")}
+                        />
+                        <span className="payment-icon">💵</span>
+                        <div className="payment-text">
+                          <strong>الدفع عند الاستلام (كاش)</strong>
+                          <small>ادفع نقداً للمندوب عند وصول الطلب إليك</small>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </>
+              )}
+            </article>
 
             {status === "error" && <div className="form-error" role="alert">تعذر إرسال الطلب حالياً، حاول مرة أخرى.</div>}
 
-            <button className="primary-action sheet-submit" type="submit" disabled={status === "submitting"}>
-              {status === "submitting" ? <><span className="spinner" /> جاري إرسال الطلب</> : status === "error" ? "إعادة المحاولة" : "إرسال الطلب"}
+            <button
+              className="primary-action sheet-submit"
+              type="submit"
+              disabled={!isCard1Valid || status === "submitting"}
+            >
+              {status === "submitting" ? (
+                <><span className="spinner" /> جاري تأكيد وإرسال الطلب...</>
+              ) : status === "error" ? (
+                "إعادة المحاولة"
+              ) : (
+                "تأكيد الطلب الآن ←"
+              )}
             </button>
           </form>
         )}

@@ -8,7 +8,8 @@ import {
   readLocalContent,
   writeLocalContent,
 } from "@/lib/store-content";
-import type { BoxSize, Product, Story, StoreContent } from "@/lib/types";
+import type { BoxSize, Product, Story, StoreContent, CityOption } from "@/lib/types";
+import { normalizeCities } from "@/lib/types";
 
 type AdminSection = "products" | "boxes" | "stories" | "settings" | "backup";
 
@@ -175,14 +176,46 @@ export function AdminDashboard() {
     reader.readAsDataURL(file);
   }
 
-  function uploadStoryImage(index: number, file: File) {
-    if (file.size > 3_500_000) {
-      flash("حجم الصورة كبير جداً، يفضل اختيار صورة أقل من 3MB");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => updateStory(index, { image: String(reader.result) });
-    reader.readAsDataURL(file);
+  const normalizedCities = normalizeCities(content.store.cities);
+
+  function addCity() {
+    const newCity: CityOption = {
+      id: `city-${Date.now().toString(36)}`,
+      name: "اسم المدينة جديدة",
+      deliveryFee: 10,
+      estimatedTime: "خلال 24 - 48 ساعة",
+    };
+    update({
+      ...content,
+      store: {
+        ...content.store,
+        cities: [...normalizedCities, newCity],
+      },
+    });
+  }
+
+  function updateCity(index: number, changes: Partial<CityOption>) {
+    const cities = normalizedCities.map((city, cityIndex) =>
+      cityIndex === index ? { ...city, ...changes } : city
+    );
+    update({
+      ...content,
+      store: {
+        ...content.store,
+        cities,
+      },
+    });
+  }
+
+  function removeCity(index: number) {
+    const cities = normalizedCities.filter((_, cityIndex) => cityIndex !== index);
+    update({
+      ...content,
+      store: {
+        ...content.store,
+        cities,
+      },
+    });
   }
 
   return (
@@ -391,9 +424,42 @@ export function AdminDashboard() {
                 <label><span>العنوان الرئيسي</span><input value={content.brand.heroTitle} onChange={(event) => update({ ...content, brand: { ...content.brand, heroTitle: event.target.value } })} /></label>
                 <label><span>النص القصير</span><textarea rows={3} value={content.brand.heroText} onChange={(event) => update({ ...content, brand: { ...content.brand, heroText: event.target.value } })} /></label>
               </article>
-              <article className="settings-card">
-                <h3>المدن المتاحة للتوصيل</h3>
-                <label><span>مدينة في كل سطر</span><textarea rows={8} value={content.store.cities.join("\n")} onChange={(event) => update({ ...content, store: { ...content.store, cities: event.target.value.split("\n").map((city) => city.trim()).filter(Boolean) } })} /></label>
+              <article className="settings-card settings-card--wide">
+                <div className="settings-card-header">
+                  <div>
+                    <h3>المدن المتاحة وأسعار التوصيل</h3>
+                    <p>أضف المدينة وحدد سعر التوصيل ومدة التوصيل لكل مدينة.</p>
+                  </div>
+                  <button type="button" className="add-button-sm" onClick={addCity}>+ إضافة مدينة جديدة</button>
+                </div>
+                <div className="city-editor-list">
+                  {normalizedCities.map((city, index) => (
+                    <div className="city-editor-card" key={city.id || index}>
+                      <div className="field-row">
+                        <label>
+                          <span>اسم المدينة</span>
+                          <input type="text" value={city.name} onChange={(e) => updateCity(index, { name: e.target.value })} placeholder="مثال: طرابلس" />
+                        </label>
+                        <label>
+                          <span>سعر التوصيل (د.ل)</span>
+                          <input type="number" min="0" value={city.deliveryFee} onChange={(e) => updateCity(index, { deliveryFee: Number(e.target.value) })} />
+                        </label>
+                        <label>
+                          <span>مدة التوصيل المحتملة</span>
+                          <input type="text" value={city.estimatedTime} onChange={(e) => updateCity(index, { estimatedTime: e.target.value })} placeholder="مثال: خلال 24 ساعة" />
+                        </label>
+                      </div>
+                      <button type="button" className="action-delete-btn-sm" onClick={() => removeCity(index)} title="حذف المدينة">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                        <span>حذف</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </article>
             </div>
           </>

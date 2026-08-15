@@ -808,6 +808,60 @@
 .cr-profile-footer span { margin-top: 4px; color: rgba(255, 255, 255, .7); font-size: 9px; }
 .cr-profile-footer a { color: rgba(255, 255, 255, .75); font-size: 10px; }
 
+/* Customer Floating Cart Button at Bottom Left */
+.cr-fab-cart {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 999;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--cr-brown-deep, #2D1A10);
+  color: #FFFDF9;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(45, 26, 16, 0.4);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cr-fab-cart:hover {
+  transform: translateY(-3px) scale(1.06);
+  background: #432819;
+  box-shadow: 0 14px 36px rgba(45, 26, 16, 0.5);
+}
+
+.cr-fab-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--cr-brown, #AA7858);
+  color: #FFFDF9;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--cr-brown-deep, #2D1A10);
+}
+
+@media (max-width: 640px) {
+  .cr-fab-cart {
+    bottom: 18px;
+    left: 18px;
+    width: 52px;
+    height: 52px;
+  }
+}
+
 /* Modal Drawer Backdrop */
 .sheet-backdrop,
 .cr-profile + .sheet-backdrop,
@@ -960,6 +1014,245 @@ body:has(.cr-profile) .customer-fields select:focus {
 }
 
 body:has(.cr-profile) .customer-fields small { color: #aa5148; font-size: 10px; }
+
+/* Sequential Multi-Card Checkout Flow */
+.checkout-cards-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.checkout-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: white;
+  border: 1px solid rgba(82, 53, 37, 0.12);
+  transition: all 0.25s ease;
+}
+
+.checkout-card.is-locked {
+  background: #FAF6F0;
+  border-color: rgba(82, 53, 37, 0.08);
+  opacity: 0.85;
+}
+
+.checkout-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.card-step-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--cr-brown-deep, #2D1A10);
+  color: #FFFDF9;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.checkout-card.is-locked .card-step-badge {
+  background: #856F61;
+}
+
+.checkout-card-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--cr-brown-deep, #2D1A10);
+}
+
+.checkout-card-header p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--cr-muted, #856F61);
+}
+
+/* WhatsApp Input Wrapper & Badge */
+.whatsapp-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.whatsapp-input-wrapper input {
+  width: 100%;
+  padding-left: 44px !important;
+}
+
+.whatsapp-icon-badge {
+  position: absolute;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Locked Card Banner */
+.locked-card-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #FFFDF9;
+  border: 1px dashed rgba(82, 53, 37, 0.2);
+  color: #856F61;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Breakdown & Payment Options */
+.summary-breakdown {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(82, 53, 37, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.summary-breakdown-row span {
+  color: var(--cr-muted, #856F61);
+}
+
+.estimated-time-tag {
+  display: block;
+  font-size: 10.5px;
+  color: var(--cr-brown, #AA7858);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.summary-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1.5px solid rgba(82, 53, 37, 0.12);
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--cr-brown-deep, #2D1A10);
+}
+
+.payment-method-section {
+  margin-top: 16px;
+}
+
+.payment-section-title {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--cr-brown-deep, #2D1A10);
+  margin-bottom: 8px;
+}
+
+.payment-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.payment-option-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #FAF6F0;
+  border: 1.5px solid rgba(82, 53, 37, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payment-option-card.is-selected {
+  background: white;
+  border-color: var(--cr-brown-deep, #2D1A10);
+  box-shadow: 0 4px 12px rgba(45, 26, 16, 0.08);
+}
+
+.payment-icon {
+  font-size: 22px;
+}
+
+.payment-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-text strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--cr-brown-deep, #2D1A10);
+}
+
+.payment-text small {
+  font-size: 10.5px;
+  color: var(--cr-muted, #856F61);
+}
+
+/* Success Confirmation Summary Card */
+.confirmation-summary-card {
+  width: 100%;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: white;
+  border: 1px solid rgba(82, 53, 37, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: right;
+}
+
+.summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+}
+
+.summary-row span {
+  color: var(--cr-muted, #856F61);
+}
+
+.summary-row strong {
+  color: var(--cr-brown-deep, #2D1A10);
+  font-weight: 700;
+}
+
+.summary-row--total {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.summary-row--total strong {
+  color: var(--cr-brown, #AA7858);
+}
+
+.summary-divider {
+  height: 1px;
+  border-bottom: 1px dashed rgba(82, 53, 37, 0.12);
+  margin: 4px 0;
+}
 
 body:has(.cr-profile) .sheet-submit,
 body:has(.cr-profile) .primary-action {
