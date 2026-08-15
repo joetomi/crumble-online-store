@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { defaultContent, readLocalContent } from "@/lib/store-content";
 import { loadCartSession, clearCartSession } from "@/lib/cart-session";
-import type { Customer, Product, StoreContent, CartSession, BoxSize } from "@/lib/types";
+import type { Customer, StoreContent, CartSession } from "@/lib/types";
 import { normalizeCities } from "@/lib/types";
 
 const emptyCustomer: Customer = { name: "", phone: "", city: "" };
@@ -17,6 +17,7 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Partial<Customer>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [orderId, setOrderId] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"cash">("cash");
   const [loaded, setLoaded] = useState(false);
 
@@ -85,6 +86,7 @@ export default function CheckoutPage() {
     event.preventDefault();
     if (!validate() || status === "submitting") return;
     setStatus("submitting");
+    setSubmitError("");
 
     try {
       const response = await fetch("/api/order", {
@@ -103,12 +105,24 @@ export default function CheckoutPage() {
           paymentMethod: "كاش عند الاستلام",
         }),
       });
-      const result = (await response.json()) as { orderId?: string };
-      if (!response.ok || !result.orderId) throw new Error("Order request failed");
+      const result = (await response.json()) as { orderId?: string; error?: string };
+      if (!response.ok || !result.orderId) {
+        const messages: Record<string, string> = {
+          ordering_unavailable: "استقبال الطلبات غير مفعّل حالياً. راجع إعدادات تيليغرام في Vercel.",
+          telegram_chat_not_found: "تعذر الوصول إلى محادثة تيليغرام. تأكد من Chat ID وأنك ضغطت Start داخل البوت.",
+          telegram_failed: "تيليغرام رفض إرسال الطلب. تحقق من إعدادات البوت ثم أعد المحاولة.",
+          ordering_closed: "المتجر مغلق حالياً ولا يستقبل طلبات جديدة.",
+          invalid_city: "المدينة المختارة غير متاحة حالياً. اخترها من القائمة من جديد.",
+          invalid_items: "بعض أصناف الطلب تغيرت. ارجع للمتجر وحدّث السلة.",
+          invalid_quantity: "عدد القطع لا يطابق حجم البوكس المختار.",
+        };
+        throw new Error(messages[result.error ?? ""] ?? "تعذر إرسال الطلب حالياً. حاول مرة أخرى.");
+      }
       setOrderId(result.orderId);
       setStatus("success");
       clearCartSession();
-    } catch {
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "تعذر إرسال الطلب حالياً. حاول مرة أخرى.");
       setStatus("error");
     }
   }
@@ -206,9 +220,9 @@ export default function CheckoutPage() {
         ) : (
           <form onSubmit={submitOrder} noValidate className="checkout-cards-flow standalone-flow">
             <div className="checkout-page-title">
-              <span className="eyebrow">صفحة تأكيد الطلب المنفصلة</span>
-              <h1>إكمال البيانات والفاتورة</h1>
-              <p>أدخل بياناتك الشخصية والمدينة لفتح الفاتورة النهائية وحساب التوصيل.</p>
+              <span className="eyebrow">خطوة أخيرة</span>
+              <h1>تأكيد طلبك</h1>
+              <p>بيانات بسيطة، ثم نرسل طلبك مباشرة إلى فريق Crumble.</p>
             </div>
 
             {/* CARD 1: Customer Personal Info & Delivery Location */}
@@ -216,8 +230,8 @@ export default function CheckoutPage() {
               <div className="checkout-card-header">
                 <span className="card-step-badge">1</span>
                 <div>
-                  <h3>المعلومات الشخصية والتوصيل</h3>
-                  <p>أدخل اسمك ورقم الهاتف المربوط بواتساب والمدينة</p>
+                  <h3>بيانات الاستلام</h3>
+                  <p>حتى نتواصل معك ونوصل الطلب</p>
                 </div>
               </div>
 
@@ -275,22 +289,15 @@ export default function CheckoutPage() {
             </article>
 
             {/* CARD 2: Invoice, Delivery Fee & Payment Method (Unlocked when Card 1 is valid) */}
-            <article className={`checkout-card ${isCard1Valid ? "is-unlocked" : "is-locked"}`}>
+            <article className="checkout-card is-unlocked">
               <div className="checkout-card-header">
                 <span className="card-step-badge">2</span>
                 <div>
                   <h3>الفاتورة وخيارات الدفع</h3>
-                  <p>تفاصيل الأصناف ورسوم التوصيل والمجموع النهائي</p>
+                  <p>راجع الأصناف والتكلفة قبل التأكيد</p>
                 </div>
               </div>
 
-              {!isCard1Valid ? (
-                <div className="locked-card-banner">
-                  <span className="lock-icon">🔒</span>
-                  <span>أكمل بطاقة المعلومات (الاسم، الواتساب، والمدينة) أعلاه لفتح الفاتورة.</span>
-                </div>
-              ) : (
-                <>
                   <div className="order-summary">
                     <div className="summary-heading">
                       <div><span>نوع الطلب</span><b>{mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
@@ -323,8 +330,8 @@ export default function CheckoutPage() {
                       </div>
                       <div className="summary-breakdown-row">
                         <div>
-                          <span>سعر التوصيل ({customer.city})</span>
-                          <small className="estimated-time-tag">⏱️ {estimatedTime}</small>
+                          <span>التوصيل {customer.city ? `(${customer.city})` : ""}</span>
+                          <small className="estimated-time-tag">{estimatedTime}</small>
                         </div>
                         <b dir="ltr">{deliveryFee} {content.store.currency}</b>
                       </div>
@@ -347,7 +354,7 @@ export default function CheckoutPage() {
                           checked={paymentMethod === "cash"}
                           onChange={() => setPaymentMethod("cash")}
                         />
-                        <span className="payment-icon">💵</span>
+                      <span className="payment-icon">كاش</span>
                         <div className="payment-text">
                           <strong>الدفع عند الاستلام (كاش)</strong>
                           <small>ادفع نقداً للمندوب عند وصول الطلب إليك</small>
@@ -355,11 +362,9 @@ export default function CheckoutPage() {
                       </label>
                     </div>
                   </div>
-                </>
-              )}
             </article>
 
-            {status === "error" && <div className="form-error" role="alert">تعذر إرسال الطلب حالياً، حاول مرة أخرى.</div>}
+            {status === "error" && <div className="form-error checkout-submit-error" role="alert">{submitError}</div>}
 
             <button
               className="primary-action sheet-submit"

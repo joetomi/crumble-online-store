@@ -61,8 +61,8 @@ export async function POST(request: Request) {
       return Response.json({ error: "invalid_quantity" }, { status: 400 });
     }
 
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+    const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
     if (!token || !chatId) {
       return Response.json({ error: "ordering_unavailable" }, { status: 503 });
     }
@@ -75,11 +75,13 @@ export async function POST(request: Request) {
       timeStyle: "short",
     }).format(new Date());
     const knownPiecePrices = items.every(({ product }) => product!.price !== null);
-    const totalPrice = data.mode === "box"
+    const productsTotal = data.mode === "box"
       ? box!.price
       : knownPiecePrices
         ? items.reduce((total, { product, quantity }) => total + product!.price! * quantity, 0)
         : null;
+    const selectedCity = validCities.find((entry) => entry.name === city)!;
+    const grandTotal = productsTotal === null ? null : productsTotal + selectedCity.deliveryFee;
 
     const text = [
       "<b>طلب جديد — Crumble 🍪</b>",
@@ -95,7 +97,9 @@ export async function POST(request: Request) {
       itemLines,
       "",
       `<b>عدد القطع:</b> ${totalPieces}`,
-      `<b>الإجمالي:</b> ${totalPrice === null ? "يُحدد لاحقاً" : `${totalPrice} ${defaultContent.store.currency}`}`,
+      `<b>المنتجات:</b> ${productsTotal === null ? "يُحدد لاحقاً" : `${productsTotal} ${defaultContent.store.currency}`}`,
+      `<b>التوصيل:</b> ${selectedCity.deliveryFee} ${defaultContent.store.currency}`,
+      `<b>الإجمالي:</b> ${grandTotal === null ? "يُحدد لاحقاً" : `${grandTotal} ${defaultContent.store.currency}`}`,
       "",
       `<b>وقت الطلب:</b> ${escapeHtml(time)}`,
     ].join("\n");
@@ -103,11 +107,15 @@ export async function POST(request: Request) {
     const telegramResponse = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
     });
 
     if (!telegramResponse.ok) {
-      return Response.json({ error: "telegram_failed" }, { status: 502 });
+      const telegramError = await telegramResponse.json().catch(() => null) as { description?: string } | null;
+      const description = telegramError?.description ?? "Unknown Telegram error";
+      console.error("Telegram sendMessage failed", { status: telegramResponse.status, description });
+      const error = /chat not found/i.test(description) ? "telegram_chat_not_found" : "telegram_failed";
+      return Response.json({ error }, { status: 502 });
     }
 
     return Response.json({ orderId }, { status: 201 });
