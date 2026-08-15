@@ -16,11 +16,36 @@
     "closedMessage": "الحجز متوقف حالياً",
     "closedDescription": "نعود لاستقبال الطلبات قريباً.",
     "cities": [
-      { "id": "city-tripoli", "name": "طرابلس", "deliveryFee": 10, "estimatedTime": "خلال 24 ساعة" },
-      { "id": "city-benghazi", "name": "بنغازي", "deliveryFee": 20, "estimatedTime": "خلال 48 ساعة" },
-      { "id": "city-misrata", "name": "مصراتة", "deliveryFee": 15, "estimatedTime": "خلال 24-48 ساعة" },
-      { "id": "city-zawia", "name": "الزاوية", "deliveryFee": 12, "estimatedTime": "خلال 24 ساعة" },
-      { "id": "city-khoms", "name": "الخمس", "deliveryFee": 15, "estimatedTime": "خلال 24-48 ساعة" }
+      {
+        "id": "city-tripoli",
+        "name": "طرابلس",
+        "deliveryFee": 10,
+        "estimatedTime": "خلال 24 ساعة"
+      },
+      {
+        "id": "city-benghazi",
+        "name": "بنغازي",
+        "deliveryFee": 20,
+        "estimatedTime": "خلال 48 ساعة"
+      },
+      {
+        "id": "city-misrata",
+        "name": "مصراتة",
+        "deliveryFee": 15,
+        "estimatedTime": "خلال 24-48 ساعة"
+      },
+      {
+        "id": "city-zawia",
+        "name": "الزاوية",
+        "deliveryFee": 12,
+        "estimatedTime": "خلال 24 ساعة"
+      },
+      {
+        "id": "city-khoms",
+        "name": "الخمس",
+        "deliveryFee": 15,
+        "estimatedTime": "خلال 24-48 ساعة"
+      }
     ],
     "social": {
       "instagram": "",
@@ -101,7 +126,7 @@
       "name": "Crumble Classic",
       "description": "شوكولاتة غنية وقلب طري.",
       "image": "/products-v2/crumble-classic.webp",
-      "price": null,
+      "price": 12,
       "available": true,
       "category": "classic",
       "variant": "crumble",
@@ -112,7 +137,7 @@
       "name": "Crumble Red Velvet",
       "description": "ريد فيلفيت وشوكولاتة بيضاء.",
       "image": "/products-v2/crumble-red-velvet.webp",
-      "price": null,
+      "price": 12,
       "available": true,
       "category": "red-velvet",
       "variant": "crumble",
@@ -123,7 +148,7 @@
       "name": "Crumble Lotus",
       "description": "لوتس كريمي بطابع دافئ.",
       "image": "/products-v2/crumble-lotus.webp",
-      "price": null,
+      "price": 12,
       "available": true,
       "category": "lotus",
       "variant": "crumble",
@@ -134,7 +159,7 @@
       "name": "Tiramisu",
       "description": "قهوة وكريمة في لقمة مخملية.",
       "image": "/products-v2/tiramisu.webp",
-      "price": null,
+      "price": 12,
       "available": true,
       "category": "special",
       "variant": "signature",
@@ -145,7 +170,7 @@
       "name": "Cinnabon",
       "description": "قرفة وكريمة ولمسة كراميل.",
       "image": "/products-v2/cinnabon.webp",
-      "price": null,
+      "price": 12,
       "available": true,
       "category": "special",
       "variant": "signature",
@@ -156,7 +181,7 @@
       "name": "Crumble Pistachio",
       "description": "فستق غني بقوام طري.",
       "image": "/products-v2/crumble-pistachio.webp",
-      "price": null,
+      "price": 12,
       "available": true,
       "category": "pistachio",
       "variant": "crumble",
@@ -167,7 +192,7 @@
       "name": "Crumble Blue Velvet",
       "description": "فيلفيت ناعم وشوكولاتة بيضاء.",
       "image": "/products-v2/crumble-blue-velvet.webp",
-      "price": null,
+      "price": 12,
       "available": true,
       "category": "blue-velvet",
       "variant": "crumble",
