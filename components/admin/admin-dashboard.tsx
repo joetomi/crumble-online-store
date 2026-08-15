@@ -203,10 +203,10 @@ export function AdminDashboard() {
       <div className="admin-toolbar">
         <div className="admin-tabs" role="tablist" aria-label="أقسام لوحة التحكم">
           {([
-            ["products", "المنتجات والأصناف"],
+            ["products", "الأصناف"],
             ["boxes", "البوكسات"],
             ["stories", "الستوريات"],
-            ["settings", "إعدادات المتجر"],
+            ["settings", "الإعدادات"],
           ] as const).map(([id, label]) => (
             <button key={id} type="button" className={section === id ? "is-active" : ""} onClick={() => setSection(id)}>
               {label}
