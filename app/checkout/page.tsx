@@ -8,7 +8,7 @@ import { loadCartSession, clearCartSession } from "@/lib/cart-session";
 import type { Customer, StoreContent, CartSession } from "@/lib/types";
 import { normalizeCities } from "@/lib/types";
 
-const emptyCustomer: Customer = { name: "", phone: "", city: "" };
+const emptyCustomer: Customer = { name: "", phone: "", city: "", locationDescription: "" };
 
 export default function CheckoutPage() {
   const [content, setContent] = useState<StoreContent>(defaultContent);
@@ -94,7 +94,12 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode,
-          customer: { name: customer.name.trim(), phone: customer.phone.trim(), city: customer.city },
+          customer: {
+            name: customer.name.trim(),
+            phone: customer.phone.trim(),
+            city: customer.city,
+            locationDescription: customer.locationDescription?.trim() || "",
+          },
           items,
           box: mode === "box" ? activeBox : undefined,
           totalPieces,
@@ -196,6 +201,12 @@ export default function CheckoutPage() {
                 <span>مدينة التوصيل</span>
                 <strong>{customer.city} ({estimatedTime})</strong>
               </div>
+              {customer.locationDescription?.trim() && (
+                <div className="summary-row">
+                  <span>وصف الموقع</span>
+                  <strong>{customer.locationDescription.trim()}</strong>
+                </div>
+              )}
               <div className="summary-row">
                 <span>طريقة الدفع</span>
                 <strong>الدفع عند الاستلام (كاش)</strong>
@@ -286,11 +297,23 @@ export default function CheckoutPage() {
                   </select>
                   {errors.city && <small>{errors.city}</small>}
                 </label>
+
+                <label className="customer-field-wide">
+                  <span>وصف الموقع <em>(اختياري)</em></span>
+                  <textarea
+                    value={customer.locationDescription ?? ""}
+                    onChange={(event) => setCustomer({ ...customer, locationDescription: event.target.value })}
+                    placeholder="مثال: اسم الشارع، أقرب نقطة دالة أو وصف المنزل..."
+                    autoComplete="street-address"
+                    maxLength={300}
+                    rows={2}
+                  />
+                </label>
               </div>
             </article>
 
             {/* CARD 2: Invoice, Delivery Fee & Payment Method (Unlocked when Card 1 is valid) */}
-            <article className="checkout-card is-unlocked">
+            <article className={`checkout-card ${isCard1Valid ? "is-unlocked" : "is-locked"}`} aria-disabled={!isCard1Valid}>
               <div className="checkout-card-header">
                 <span className="card-step-badge">2</span>
                 <div>
@@ -299,6 +322,14 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {!isCard1Valid && (
+                <div className="locked-card-banner" role="status">
+                  <span className="lock-icon">🔒</span>
+                  <span>أكمل الاسم ورقم الواتساب والمدينة لفتح الفاتورة وتأكيد الطلب.</span>
+                </div>
+              )}
+
+              <fieldset className="checkout-card-body" disabled={!isCard1Valid}>
                   <div className="order-summary">
                     <div className="summary-heading">
                       <div><span>نوع الطلب</span><b>{mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
@@ -363,6 +394,7 @@ export default function CheckoutPage() {
                       </label>
                     </div>
                   </div>
+              </fieldset>
             </article>
 
             {status === "error" && <div className="form-error checkout-submit-error" role="alert">{submitError}</div>}
@@ -372,7 +404,9 @@ export default function CheckoutPage() {
               type="submit"
               disabled={!isCard1Valid || status === "submitting"}
             >
-              {status === "submitting" ? (
+              {!isCard1Valid ? (
+                "أكمل بيانات الاستلام أولاً"
+              ) : status === "submitting" ? (
                 <><span className="spinner" /> جاري تأكيد وإرسال الطلب...</>
               ) : status === "error" ? (
                 "إعادة المحاولة"

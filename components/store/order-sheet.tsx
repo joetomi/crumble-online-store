@@ -15,7 +15,7 @@ type OrderSheetProps = {
   onNewOrder: () => void;
 };
 
-const emptyCustomer: Customer = { name: "", phone: "", city: "" };
+const emptyCustomer: Customer = { name: "", phone: "", city: "", locationDescription: "" };
 
 export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, onNewOrder }: OrderSheetProps) {
   const [stepView, setStepView] = useState<"cart" | "checkout">("cart");
@@ -96,7 +96,12 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode,
-          customer: { name: customer.name.trim(), phone: customer.phone.trim(), city: customer.city },
+          customer: {
+            name: customer.name.trim(),
+            phone: customer.phone.trim(),
+            city: customer.city,
+            locationDescription: customer.locationDescription?.trim() || "",
+          },
           items,
           box: mode === "box" ? box : undefined,
           totalPieces,
@@ -152,6 +157,12 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
                 <span>مدينة التوصيل</span>
                 <strong>{customer.city} ({estimatedTime})</strong>
               </div>
+              {customer.locationDescription?.trim() && (
+                <div className="summary-row">
+                  <span>وصف الموقع</span>
+                  <strong>{customer.locationDescription.trim()}</strong>
+                </div>
+              )}
               <div className="summary-row">
                 <span>طريقة الدفع</span>
                 <strong>الدفع عند الاستلام (كاش)</strong>
@@ -300,6 +311,18 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
                   </select>
                   {errors.city && <small>{errors.city}</small>}
                 </label>
+
+                <label className="customer-field-wide">
+                  <span>وصف الموقع <em>(اختياري)</em></span>
+                  <textarea
+                    value={customer.locationDescription ?? ""}
+                    onChange={(event) => setCustomer({ ...customer, locationDescription: event.target.value })}
+                    placeholder="مثال: اسم الشارع، أقرب نقطة دالة أو وصف المنزل..."
+                    autoComplete="street-address"
+                    maxLength={300}
+                    rows={2}
+                  />
+                </label>
               </div>
             </article>
 
@@ -395,7 +418,9 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
               type="submit"
               disabled={!isCard1Valid || status === "submitting"}
             >
-              {status === "submitting" ? (
+              {!isCard1Valid ? (
+                "أكمل بيانات الاستلام أولاً"
+              ) : status === "submitting" ? (
                 <><span className="spinner" /> جاري تأكيد وإرسال الطلب...</>
               ) : status === "error" ? (
                 "إعادة المحاولة"

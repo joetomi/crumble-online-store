@@ -1027,7 +1027,8 @@ body:has(.cr-profile) .customer-fields label { display: flex; flex-direction: co
 body:has(.cr-profile) .customer-fields label span { font-size: 11px; font-weight: 700; color: var(--cr-brown-deep); }
 
 body:has(.cr-profile) .customer-fields input,
-body:has(.cr-profile) .customer-fields select {
+body:has(.cr-profile) .customer-fields select,
+body:has(.cr-profile) .customer-fields textarea {
   min-height: 44px;
   padding: 0 14px;
   border-radius: 12px;
@@ -1038,7 +1039,8 @@ body:has(.cr-profile) .customer-fields select {
 }
 
 body:has(.cr-profile) .customer-fields input:focus,
-body:has(.cr-profile) .customer-fields select:focus {
+body:has(.cr-profile) .customer-fields select:focus,
+body:has(.cr-profile) .customer-fields textarea:focus {
   border-color: var(--cr-brown);
 }
 
@@ -1585,6 +1587,14 @@ body:has(.cr-profile) .success-cookie { font-size: 48px; }
   grid-column: 1 / -1;
 }
 
+.customer-fields .customer-field-wide { grid-column: 1 / -1; }
+.customer-fields label > span em {
+  color: #9b8679;
+  font-size: .9em;
+  font-style: normal;
+  font-weight: 500;
+}
+
 .checkout-page-standalone .customer-fields label > span {
   display: block;
   margin: 0 2px 5px;
@@ -1594,7 +1604,8 @@ body:has(.cr-profile) .success-cookie { font-size: 48px; }
 }
 
 .checkout-page-standalone .customer-fields input,
-.checkout-page-standalone .customer-fields select {
+.checkout-page-standalone .customer-fields select,
+.checkout-page-standalone .customer-fields textarea {
   width: 100%;
   height: 42px;
   padding: 0 11px;
@@ -1607,8 +1618,17 @@ body:has(.cr-profile) .success-cookie { font-size: 48px; }
   font-size: 12px;
 }
 
+.checkout-page-standalone .customer-fields textarea,
+body:has(.cr-profile) .customer-fields textarea {
+  min-height: 70px;
+  padding: 10px 11px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
 .checkout-page-standalone .customer-fields input:focus,
-.checkout-page-standalone .customer-fields select:focus {
+.checkout-page-standalone .customer-fields select:focus,
+.checkout-page-standalone .customer-fields textarea:focus {
   border-color: var(--checkout-brand);
   box-shadow: 0 0 0 3px rgba(173,121,88,.12);
 }
@@ -1671,6 +1691,36 @@ body:has(.cr-profile) .success-cookie { font-size: 48px; }
 .checkout-page-standalone .payment-text strong { font-size: 10px; }
 .checkout-page-standalone .payment-text small { color: #927c6e; font-size: 9px; }
 
+.checkout-card-body {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  transition: opacity .2s ease, filter .2s ease;
+}
+
+.checkout-page-standalone .checkout-card.is-locked {
+  opacity: 1;
+  background: #eee8e3;
+  box-shadow: none;
+}
+.checkout-page-standalone .checkout-card.is-locked .checkout-card-header,
+.checkout-page-standalone .checkout-card.is-locked .checkout-card-body {
+  opacity: .34;
+  filter: grayscale(1);
+  pointer-events: none;
+  user-select: none;
+}
+.checkout-page-standalone .checkout-card.is-locked .locked-card-banner {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 10px;
+  background: rgba(255, 253, 249, .94);
+  border-style: solid;
+  color: #63483a;
+  opacity: 1;
+}
+
 .checkout-page-standalone .sheet-submit,
 .checkout-page-standalone .primary-action {
   display: flex;
@@ -1689,7 +1739,12 @@ body:has(.cr-profile) .success-cookie { font-size: 48px; }
   font-weight: 800;
   cursor: pointer;
 }
-.checkout-page-standalone .sheet-submit:disabled { opacity: .45; cursor: not-allowed; }
+.checkout-page-standalone .sheet-submit:disabled {
+  opacity: .36;
+  filter: grayscale(1);
+  box-shadow: none;
+  cursor: not-allowed;
+}
 .checkout-page-standalone .checkout-submit-error {
   padding: 10px 12px;
   border: 1px solid #f2b8b5;

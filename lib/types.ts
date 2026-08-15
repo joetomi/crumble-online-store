@@ -92,6 +92,7 @@ export type Customer = {
   name: string;
   phone: string;
   city: string;
+  locationDescription?: string;
 };
 
 export type OrderPayload = {

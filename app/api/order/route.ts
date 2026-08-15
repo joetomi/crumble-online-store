@@ -26,6 +26,7 @@ export async function POST(request: Request) {
     const name = data.customer?.name?.trim() ?? "";
     const phone = data.customer?.phone?.trim() ?? "";
     const city = data.customer?.city?.trim() ?? "";
+    const locationDescription = (data.customer?.locationDescription ?? "").trim().slice(0, 300);
 
     if (!data.mode || !name || phone.replace(/\D/g, "").length < 8 || !city) {
       return Response.json({ error: "invalid_order" }, { status: 400 });
@@ -108,6 +109,7 @@ export async function POST(request: Request) {
       `<b>الاسم:</b> ${escapeHtml(name)}`,
       `<b>الهاتف:</b> ${escapeHtml(phone)}`,
       `<b>المدينة:</b> ${escapeHtml(city)}`,
+      ...(locationDescription ? [`<b>وصف الموقع:</b> ${escapeHtml(locationDescription)}`] : []),
       "",
       "━━━━━━━━━━━━━━━━━━",
       "",
