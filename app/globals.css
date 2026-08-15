@@ -589,6 +589,7 @@ img {
 .box-editor-card select,
 .settings-card select {
   width: 100%;
+  max-width: 100%;
   height: 52px;
   padding: 8px 16px;
   line-height: 1.5;
@@ -607,6 +608,7 @@ img {
 .box-editor-card textarea,
 .settings-card textarea {
   width: 100%;
+  max-width: 100%;
   height: auto;
   min-height: 76px;
   padding: 12px 16px;
@@ -806,8 +808,10 @@ img {
 /* Settings Grid */
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .settings-card {
@@ -818,6 +822,10 @@ img {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .settings-card h3 {
@@ -829,11 +837,50 @@ img {
   padding-bottom: 10px;
 }
 
+.settings-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.settings-card label span {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #523525;
+}
+
 .toggle-field--large {
-  padding: 10px 14px;
-  border-radius: 12px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 14px;
   background: #FAF6F0;
-  border: 1px solid rgba(82, 53, 37, 0.1);
+  border: 1.5px solid rgba(82, 53, 37, 0.15);
+  cursor: pointer;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.toggle-field--large input[type="checkbox"] {
+  width: 20px !important;
+  height: 20px !important;
+  accent-color: #2D1A10;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggle-field--large span {
+  font-size: 13.5px !important;
+  font-weight: 800 !important;
+  color: #2D1A10 !important;
+  word-break: break-word;
 }
 
 .json-box {
