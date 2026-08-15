@@ -91,16 +91,26 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
 
       {/* Main Banner Card */}
       <div className="sc-banner-card">
-        {/* Active Slide Image */}
-        <div className="sc-slide" key={currentItem.id}>
-          <img
-            src={currentItem.image}
-            alt={titleText}
-            loading="eager"
-            decoding="async"
-            className="sc-slide-image"
-          />
-        </div>
+        {/* All Slide Images with Instant Switching */}
+        {enabledItems.map((item, index) => {
+          const isActive = index === safeIndex;
+          const title = item.titleAr || item.title || item.titleEn || "";
+          return (
+            <div
+              key={item.id}
+              className="sc-slide"
+              style={{ display: isActive ? "block" : "none" }}
+            >
+              <img
+                src={item.image}
+                alt={title}
+                loading="eager"
+                decoding="sync"
+                className="sc-slide-image"
+              />
+            </div>
+          );
+        })}
 
         {/* Gradient Readability Overlay */}
         <div className="sc-gradient-overlay" aria-hidden="true" />
