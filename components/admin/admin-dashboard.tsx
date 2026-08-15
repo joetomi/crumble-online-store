@@ -10,9 +10,9 @@ import {
   validateContent,
   writeLocalContent,
 } from "@/lib/store-content";
-import type { BoxSize, Product, StoreContent } from "@/lib/types";
+import type { BoxSize, Product, Story, StoreContent } from "@/lib/types";
 
-type AdminSection = "products" | "boxes" | "settings" | "json";
+type AdminSection = "products" | "boxes" | "stories" | "settings" | "json";
 
 export function AdminDashboard() {
   const [content, setContent] = useState<StoreContent>(defaultContent);
@@ -121,6 +121,32 @@ export function AdminDashboard() {
     update({ ...content, boxes: content.boxes.filter((_, boxIndex) => boxIndex !== index) });
   }
 
+  function addStory() {
+    const stories = content.stories ?? [];
+    const story: Story = {
+      id: `story-${Date.now().toString(36)}`,
+      title: "ستوري جديد",
+      titleAr: "ستوري جديد",
+      caption: "وصف الستوري الجديد",
+      captionAr: "وصف الستوري الجديد",
+      image: "/stories/story-1.jpg",
+      enabled: true,
+    };
+    update({ ...content, stories: [...stories, story] });
+  }
+
+  function updateStory(index: number, changes: Partial<Story>) {
+    const stories = (content.stories ?? []).map((story, storyIndex) =>
+      storyIndex === index ? { ...story, ...changes } : story,
+    );
+    update({ ...content, stories });
+  }
+
+  function removeStory(index: number) {
+    const stories = (content.stories ?? []).filter((_, storyIndex) => storyIndex !== index);
+    update({ ...content, stories });
+  }
+
   function uploadProductImage(index: number, file: File) {
     if (file.size > 2_500_000) {
       flash("يفضل أن يكون حجم الصورة أقل من 2.5MB");
@@ -128,6 +154,16 @@ export function AdminDashboard() {
     }
     const reader = new FileReader();
     reader.onload = () => updateProduct(index, { image: String(reader.result) });
+    reader.readAsDataURL(file);
+  }
+
+  function uploadStoryImage(index: number, file: File) {
+    if (file.size > 2_500_000) {
+      flash("يفضل أن يكون حجم الصورة أقل من 2.5MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => updateStory(index, { image: String(reader.result) });
     reader.readAsDataURL(file);
   }
 
@@ -145,12 +181,12 @@ export function AdminDashboard() {
         <div>
           <span className="eyebrow">لوحة تحكم المحتوى</span>
           <h1>المتجر يتغيّر من ملف واحد.</h1>
-          <p>عدّل النكهات والصور والبوكسات، جرّبها على جهازك، ثم صدّر JSON وارفعه إلى GitHub.</p>
+          <p>عدّل النكهات والصور والبوكسات والستوريات، جرّبها على جهازك، ثم صدّر JSON وارفعه إلى GitHub.</p>
         </div>
         <div className="admin-stats">
           <div><strong>{content.products.length}</strong><span>منتجات</span></div>
           <div><strong>{content.boxes.length}</strong><span>بوكسات</span></div>
-          <div><strong>{content.store.orderingEnabled ? "ON" : "OFF"}</strong><span>الطلبات</span></div>
+          <div><strong>{content.stories?.length ?? 0}</strong><span>ستوريات</span></div>
         </div>
       </section>
 
@@ -159,6 +195,7 @@ export function AdminDashboard() {
           {([
             ["products", "المنتجات"],
             ["boxes", "البوكسات"],
+            ["stories", "الستوريات"],
             ["settings", "الإعدادات"],
             ["json", "ملف JSON"],
           ] as const).map(([id, label]) => (
@@ -246,6 +283,42 @@ export function AdminDashboard() {
                   <div className="editor-footer">
                     <label className="toggle-field"><input type="checkbox" checked={box.enabled} onChange={(event) => updateBox(index, { enabled: event.target.checked })} /><span>ظاهر في المتجر</span></label>
                     <button type="button" className="danger-link" onClick={() => removeBox(index)}>حذف البوكس</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
+        )}
+
+        {section === "stories" && (
+          <>
+            <div className="admin-section-title">
+              <div><span className="eyebrow">قصص صور المنتجات</span><h2>الستوريات</h2><p>عدّل صور الستوري، العناوين، الأوصاف وحالتها في الواجهة وفي صفحة /stories.</p></div>
+              <button type="button" className="add-button" onClick={addStory}>+ إضافة ستوري</button>
+            </div>
+            <div className="product-editor-list">
+              {(content.stories ?? []).map((story, index) => (
+                <article className="product-editor" key={story.id}>
+                  <div className="product-editor-image">
+                    <img src={story.image} alt={story.title ?? ""} />
+                    <label className="upload-image">
+                      تغيير الصورة
+                      <input type="file" accept="image/*" hidden onChange={(event) => event.target.files?.[0] && uploadStoryImage(index, event.target.files[0])} />
+                    </label>
+                  </div>
+                  <div className="editor-fields">
+                    <div className="field-row field-row--wide">
+                      <label><span>عنوان الستوري العربي</span><input value={story.titleAr || story.title || ""} onChange={(event) => updateStory(index, { titleAr: event.target.value, title: event.target.value })} /></label>
+                      <label><span>عنوان الستوري الإنجليزي</span><input dir="ltr" value={story.titleEn || ""} onChange={(event) => updateStory(index, { titleEn: event.target.value })} /></label>
+                    </div>
+                    <div className="field-row field-row--wide">
+                      <label><span>وصف الستوري العربي</span><input value={story.captionAr || story.caption || ""} onChange={(event) => updateStory(index, { captionAr: event.target.value, caption: event.target.value })} /></label>
+                      <label><span>وصف الستوري الإنجليزي</span><input dir="ltr" value={story.captionEn || ""} onChange={(event) => updateStory(index, { captionEn: event.target.value })} /></label>
+                    </div>
+                    <div className="editor-footer">
+                      <label className="toggle-field"><input type="checkbox" checked={story.enabled !== false} onChange={(event) => updateStory(index, { enabled: event.target.checked })} /><span>مفعل وموجود في الستوريات</span></label>
+                      <button type="button" className="danger-link" onClick={() => removeStory(index)}>حذف الستوري</button>
+                    </div>
                   </div>
                 </article>
               ))}
