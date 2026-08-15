@@ -1,18 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #fbf7f0;
-  --cream: #f1e5d4;
-  --cream-deep: #e4c9a7;
-  --brand: #ad7957;
-  --brand-dark: #724b37;
-  --ink: #3a271e;
-  --muted: #806e63;
-  --white: #fffdf9;
-  --line: rgba(82, 52, 37, 0.14);
-  --green: #647552;
-  --red: #aa5148;
-  --shadow-soft: 0 22px 70px rgba(72, 44, 30, 0.11);
+  --paper: #FAF5EF;
+  --paper-deep: #F3EAE0;
+  --cream: #FFFDF9;
+  --cream-deep: #EBDAC9;
+  --brand: #C27A4D;
+  --brand-light: #E0A37A;
+  --brand-dark: #7A4626;
+  --brand-gradient: linear-gradient(135deg, #C27A4D 0%, #9E5B32 100%);
+  --ink: #1E130C;
+  --ink-soft: #3D291D;
+  --muted: #826E60;
+  --white: #FFFFFF;
+  --line: rgba(194, 122, 77, 0.14);
+  --line-strong: rgba(194, 122, 77, 0.28);
+  --green: #4D7A54;
+  --green-bg: #EAF4EC;
+  --red: #B84A41;
+  --gold: #D99B26;
+  --gold-soft: #FFF8EB;
+  --shadow-soft: 0 16px 40px -10px rgba(30, 19, 12, 0.08);
+  --shadow-glow: 0 12px 32px rgba(194, 122, 77, 0.18);
+  --shadow-card: 0 10px 30px rgba(30, 19, 12, 0.04), 0 2px 8px rgba(30, 19, 12, 0.02);
+  --font-arabic: 'Alexandria', system-ui, -apple-system, sans-serif;
+  --font-latin: 'Outfit', 'Alexandria', sans-serif;
 }
 
 * {
@@ -28,8 +40,9 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  font-family: var(--font-arabic);
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 button,

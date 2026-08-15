@@ -38,6 +38,19 @@ export function Storefront() {
   const storeStatus = getStoreStatus(content.store);
   const pieceCount = Object.values(quantities).reduce((total, quantity) => total + quantity, 0);
 
+  const totalPiecesPrice = useMemo(() => {
+    let total = 0;
+    for (const [id, qty] of Object.entries(quantities)) {
+      if (qty > 0) {
+        const prod = products.find((p) => p.id === id);
+        if (prod && prod.price !== null) {
+          total += prod.price * qty;
+        }
+      }
+    }
+    return total;
+  }, [quantities, products]);
+
   function addPiece(product: Product) {
     setQuantities((current) => ({ ...current, [product.id]: (current[product.id] ?? 0) + 1 }));
   }
@@ -135,10 +148,13 @@ export function Storefront() {
                 <div><span>اختر نكهتك</span><b>الكوكيز الطازجة</b></div>
                 {pieceCount > 0 && <strong>{pieceCount} قطع</strong>}
               </div>
-              <ProductGrid products={products} quantities={quantities} onAdd={addPiece} onRemove={removePiece} mode="pieces" />
+              <ProductGrid products={products} quantities={quantities} onAdd={addPiece} onRemove={removePiece} mode="pieces" currency={content.store.currency} />
               {pieceCount > 0 && (
                 <div className="cr-review-card">
-                  <div><span>اختياراتك</span><b>{pieceCount} {pieceCount === 1 ? "قطعة" : "قطع"}</b></div>
+                  <div>
+                    <span>مجموع الطلب ({pieceCount} {pieceCount === 1 ? "قطعة" : "قطع"})</span>
+                    <b dir="ltr">{totalPiecesPrice > 0 ? `${totalPiecesPrice} ${content.store.currency}` : `${pieceCount} قطع`}</b>
+                  </div>
                   <button type="button" disabled={!storeStatus.isOpen} onClick={() => setSheetOpen(true)}>مراجعة الطلب</button>
                 </div>
               )}

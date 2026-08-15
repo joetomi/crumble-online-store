@@ -10,9 +10,10 @@ type ProductGridProps = {
   onAdd: (product: Product, source: HTMLElement) => void;
   onRemove: (product: Product) => void;
   mode: "pieces" | "box";
+  currency?: string;
 };
 
-export function ProductGrid({ products, quantities, disabled, onAdd, onRemove, mode }: ProductGridProps) {
+export function ProductGrid({ products, quantities, disabled, onAdd, onRemove, mode, currency }: ProductGridProps) {
   return (
     <div className={`cr-product-grid cr-product-grid--${mode}`}>
       {products.map((product, index) => {
@@ -32,19 +33,19 @@ export function ProductGrid({ products, quantities, disabled, onAdd, onRemove, m
 
             <div className="cr-product-info">
               <div className="cr-product-copy">
-                <h3 dir="ltr">{product.name}</h3>
+                <h3 dir="auto">{product.name}</h3>
                 <p>{product.description}</p>
               </div>
 
               {quantity === 0 ? (
                 <button className="cr-product-add" type="button" disabled={disabled} onClick={(event) => onAdd(product, event.currentTarget)}>
                   <span>{disabled ? "مكتمل" : "إضافة"}</span>
-                  <b aria-hidden="true">+</b>
+                  <b dir="ltr">{product.price && currency ? `${product.price} ${currency}` : "+"}</b>
                 </button>
               ) : (
                 <div className="cr-mini-stepper" aria-label={`كمية ${product.name}`}>
                   <button type="button" aria-label={`إنقاص ${product.name}`} onClick={() => onRemove(product)}>−</button>
-                  <span aria-live="polite">{quantity}</span>
+                  <span aria-live="polite" dir="ltr">{quantity}</span>
                   <button type="button" aria-label={`زيادة ${product.name}`} disabled={disabled} onClick={(event) => onAdd(product, event.currentTarget)}>+</button>
                 </div>
               )}
