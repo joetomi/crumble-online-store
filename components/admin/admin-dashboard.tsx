@@ -222,7 +222,7 @@ export function AdminDashboard() {
                       <label><span>اسم النكهة</span><input type="text" value={product.name} onChange={(event) => updateProduct(index, { name: event.target.value })} placeholder="مثال: Crumble Classic" /></label>
                       <label><span>السعر (د.ل)</span><input type="number" min="0" value={product.price ?? ""} placeholder="يحدد لاحقاً" onChange={(event) => updateProduct(index, { price: event.target.value === "" ? null : Number(event.target.value) })} /></label>
                     </div>
-                    <label><span>الوصف القصير</span><input type="text" value={product.description} onChange={(event) => updateProduct(index, { description: event.target.value })} placeholder="وصف مكونات النكهة..." /></label>
+                    <label><span>الوصف القصير</span><textarea rows={2} value={product.description} onChange={(event) => updateProduct(index, { description: event.target.value })} placeholder="وصف مكونات النكهة..." /></label>
                     <div className="editor-footer">
                       <label className="toggle-field"><input type="checkbox" checked={product.available} onChange={(event) => updateProduct(index, { available: event.target.checked })} /><span>متوفر في المتجر</span></label>
                       <button type="button" className="danger-link" onClick={() => removeProduct(index)}>حذف النكهة</button>
@@ -280,7 +280,7 @@ export function AdminDashboard() {
                   </div>
                   <div className="editor-fields">
                     <label><span>عنوان الستوري</span><input type="text" value={story.titleAr || story.title || ""} onChange={(event) => updateStory(index, { titleAr: event.target.value, title: event.target.value })} placeholder="عنوان العرض..." /></label>
-                    <label><span>الوصف القصير</span><input type="text" value={story.captionAr || story.caption || ""} onChange={(event) => updateStory(index, { captionAr: event.target.value, caption: event.target.value })} placeholder="تفاصيل العرض..." /></label>
+                    <label><span>الوصف القصير</span><textarea rows={2} value={story.captionAr || story.caption || ""} onChange={(event) => updateStory(index, { captionAr: event.target.value, caption: event.target.value })} placeholder="تفاصيل العرض..." /></label>
                     <div className="editor-footer">
                       <label className="toggle-field"><input type="checkbox" checked={story.enabled !== false} onChange={(event) => updateStory(index, { enabled: event.target.checked })} /><span>ظاهر في الستوريات</span></label>
                       <button type="button" className="danger-link" onClick={() => removeStory(index)}>حذف الستوري</button>
