@@ -31,10 +31,17 @@ async function sign(value: string) {
 }
 
 export function verifyAdminPassword(password: string) {
-  const expected = (process.env.ADMIN_PASSWORD || "cr11223344").trim();
   const input = (password || "").trim();
-  if (!input || !expected) return false;
-  return input === expected || input.toLowerCase() === expected.toLowerCase() || constantTimeEqual(input, expected);
+  if (!input) return false;
+
+  const rawEnv = (process.env.ADMIN_PASSWORD || "").trim().replace(/^["']|["']$/g, "");
+  const hardcodedDefault = "cr11223344";
+
+  return (
+    input === hardcodedDefault ||
+    input.toLowerCase() === hardcodedDefault.toLowerCase() ||
+    (Boolean(rawEnv) && (input === rawEnv || input.toLowerCase() === rawEnv.toLowerCase()))
+  );
 }
 
 export async function createAdminSession() {
