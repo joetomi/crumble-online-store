@@ -12,7 +12,7 @@ import {
 } from "@/lib/store-content";
 import type { BoxSize, Product, Story, StoreContent } from "@/lib/types";
 
-type AdminSection = "products" | "boxes" | "stories" | "settings" | "json";
+type AdminSection = "products" | "boxes" | "stories" | "settings" | "backup";
 
 export function AdminDashboard() {
   const [content, setContent] = useState<StoreContent>(defaultContent);
@@ -39,38 +39,30 @@ export function AdminDashboard() {
   function savePreview() {
     writeLocalContent(content);
     setDirty(false);
-    flash("تم حفظ نسخة المعاينة على هذا الجهاز");
+    flash("تم حفظ التعديلات على هذا الجهاز بنجاح");
   }
 
-  function exportJson() {
+  function exportBackup() {
     const blob = new Blob([JSON.stringify(content, null, 2)], { type: "application/json" });
     const href = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = href;
-    link.download = "store.json";
+    link.download = "store-backup.json";
     link.click();
     URL.revokeObjectURL(href);
-    flash("تم تجهيز ملف store.json");
+    flash("تم تحميل النسخة الاحتياطية بنجاح");
   }
 
-  async function importJson(file: File) {
+  async function importBackup(file: File) {
     try {
       const parsed = JSON.parse(await file.text()) as unknown;
       if (!validateContent(parsed)) throw new Error("Invalid content");
       update(parsed);
       setSection("products");
-      flash("تم استيراد الملف — راجعه ثم احفظ المعاينة");
+      flash("تم استعادة النسخة بنجاح — راجع المحتوى ثم احفظ التغييرات");
     } catch {
-      flash("الملف غير صالح أو بنيته غير مكتملة");
+      flash("الملف المستورد غير صالح");
     }
-  }
-
-  function resetContent() {
-    if (!window.confirm("هل تريد الرجوع إلى بيانات الموقع الأصلية؟")) return;
-    clearLocalContent();
-    setContent(defaultContent);
-    setDirty(false);
-    flash("تمت استعادة النسخة الأصلية");
   }
 
   function addProduct() {
@@ -84,7 +76,7 @@ export function AdminDashboard() {
       available: true,
       category: "new",
       variant: "signature",
-      accent: "#ad7957",
+      accent: "#aa7858",
     };
     update({ ...content, products: [...content.products, product] });
   }
@@ -148,8 +140,8 @@ export function AdminDashboard() {
   }
 
   function uploadProductImage(index: number, file: File) {
-    if (file.size > 2_500_000) {
-      flash("يفضل أن يكون حجم الصورة أقل من 2.5MB");
+    if (file.size > 3_500_000) {
+      flash("حجم الصورة كبير جداً، يفضل اختيار صورة أقل من 3MB");
       return;
     }
     const reader = new FileReader();
@@ -158,8 +150,8 @@ export function AdminDashboard() {
   }
 
   function uploadStoryImage(index: number, file: File) {
-    if (file.size > 2_500_000) {
-      flash("يفضل أن يكون حجم الصورة أقل من 2.5MB");
+    if (file.size > 3_500_000) {
+      flash("حجم الصورة كبير جداً، يفضل اختيار صورة أقل من 3MB");
       return;
     }
     const reader = new FileReader();
@@ -171,17 +163,17 @@ export function AdminDashboard() {
     <main className="admin-shell" dir="rtl">
       <header className="admin-topbar">
         <Link className="admin-brand" href="/">
-          <img src={content.brand.logo} alt="" />
-          <span><b>CRUMBLE</b><small>Content Studio</small></span>
+          <img src={content.brand.logo} alt="شعار Crumble" />
+          <span><b>CRUMBLE</b><small>لوحة التحكم</small></span>
         </Link>
         <Link className="preview-link" href="/">عرض المتجر <span aria-hidden="true">↗</span></Link>
       </header>
 
       <section className="admin-hero">
         <div>
-          <span className="eyebrow">لوحة تحكم المحتوى</span>
-          <h1>المتجر يتغيّر من ملف واحد.</h1>
-          <p>عدّل النكهات والصور والبوكسات والستوريات، جرّبها على جهازك، ثم صدّر JSON وارفعه إلى GitHub.</p>
+          <span className="eyebrow">إدارة محتوى المتجر</span>
+          <h1>لوحة تحكم بسيطة ومباشرة.</h1>
+          <p>تعديل المنتجات، الصور، البوكسات والستوريات وحفظ التغييرات مباشرة.</p>
         </div>
         <div className="admin-stats">
           <div><strong>{content.products.length}</strong><span>منتجات</span></div>
@@ -193,11 +185,11 @@ export function AdminDashboard() {
       <div className="admin-toolbar">
         <div className="admin-tabs" role="tablist" aria-label="أقسام لوحة التحكم">
           {([
-            ["products", "المنتجات"],
+            ["products", "المنتجات والنكهات"],
             ["boxes", "البوكسات"],
             ["stories", "الستوريات"],
-            ["settings", "الإعدادات"],
-            ["json", "ملف JSON"],
+            ["settings", "إعدادات المتجر"],
+            ["backup", "نسخة احتياطية"],
           ] as const).map(([id, label]) => (
             <button key={id} type="button" className={section === id ? "is-active" : ""} onClick={() => setSection(id)}>
               {label}
@@ -210,11 +202,11 @@ export function AdminDashboard() {
             type="file"
             accept="application/json,.json"
             hidden
-            onChange={(event) => event.target.files?.[0] && importJson(event.target.files[0])}
+            onChange={(event) => event.target.files?.[0] && importBackup(event.target.files[0])}
           />
-          <button type="button" className="secondary-action" onClick={() => importRef.current?.click()}>استيراد</button>
-          <button type="button" className="secondary-action" onClick={exportJson}>تصدير JSON</button>
-          <button type="button" className="admin-save" onClick={savePreview}>{dirty ? "حفظ المعاينة •" : "المعاينة محفوظة"}</button>
+          <button type="button" className="secondary-action" onClick={() => importRef.current?.click()}>استعادة نسخة</button>
+          <button type="button" className="secondary-action" onClick={exportBackup}>تحميل نسخة</button>
+          <button type="button" className="admin-save" onClick={savePreview}>{dirty ? "حفظ التغييرات •" : "محفوظ"}</button>
         </div>
       </div>
 
@@ -225,7 +217,7 @@ export function AdminDashboard() {
           <>
             <div className="admin-section-title">
               <div><span className="eyebrow">النكهات</span><h2>المنتجات والصور</h2><p>اسم النكهة وصورتها ووصفها تظهر مباشرة في واجهة الطلب.</p></div>
-              <button type="button" className="add-button" onClick={addProduct}>+ إضافة منتج</button>
+              <button type="button" className="add-button" onClick={addProduct}>+ إضافة نكهة جديدة</button>
             </div>
             <div className="product-editor-list">
               {content.products.map((product, index) => (
@@ -239,20 +231,13 @@ export function AdminDashboard() {
                   </div>
                   <div className="editor-fields">
                     <div className="field-row field-row--wide">
-                      <label><span>اسم المنتج</span><input dir="ltr" value={product.name} onChange={(event) => updateProduct(index, { name: event.target.value })} /></label>
-                      <label><span>معرّف المنتج</span><input dir="ltr" value={product.id} onChange={(event) => updateProduct(index, { id: event.target.value })} /></label>
+                      <label><span>اسم النكهة</span><input value={product.name} onChange={(event) => updateProduct(index, { name: event.target.value })} placeholder="مثال: Crumble Classic" /></label>
+                      <label><span>السعر (د.ل)</span><input type="number" min="0" value={product.price ?? ""} placeholder="يحدد لاحقاً" onChange={(event) => updateProduct(index, { price: event.target.value === "" ? null : Number(event.target.value) })} /></label>
                     </div>
-                    <label><span>الوصف القصير</span><input value={product.description} onChange={(event) => updateProduct(index, { description: event.target.value })} /></label>
-                    <label><span>مسار الصورة أو الرابط</span><input dir="ltr" value={product.image.startsWith("data:") ? "صورة مرفوعة داخل JSON" : product.image} disabled={product.image.startsWith("data:")} onChange={(event) => updateProduct(index, { image: event.target.value })} /></label>
-                    <div className="field-row">
-                      <label><span>السعر</span><input type="number" min="0" value={product.price ?? ""} placeholder="غير محدد" onChange={(event) => updateProduct(index, { price: event.target.value === "" ? null : Number(event.target.value) })} /></label>
-                      <label><span>الفئة</span><input dir="ltr" value={product.category} onChange={(event) => updateProduct(index, { category: event.target.value })} /></label>
-                      <label><span>النسخة</span><input dir="ltr" value={product.variant} onChange={(event) => updateProduct(index, { variant: event.target.value })} /></label>
-                      <label className="color-field"><span>لون مميز</span><input type="color" value={product.accent} onChange={(event) => updateProduct(index, { accent: event.target.value })} /></label>
-                    </div>
+                    <label><span>الوصف القصير</span><input value={product.description} onChange={(event) => updateProduct(index, { description: event.target.value })} placeholder="وصف مكونات النكهة..." /></label>
                     <div className="editor-footer">
                       <label className="toggle-field"><input type="checkbox" checked={product.available} onChange={(event) => updateProduct(index, { available: event.target.checked })} /><span>متوفر في المتجر</span></label>
-                      <button type="button" className="danger-link" onClick={() => removeProduct(index)}>حذف المنتج</button>
+                      <button type="button" className="danger-link" onClick={() => removeProduct(index)}>حذف النكهة</button>
                     </div>
                   </div>
                 </article>
@@ -264,21 +249,18 @@ export function AdminDashboard() {
         {section === "boxes" && (
           <>
             <div className="admin-section-title">
-              <div><span className="eyebrow">أحجام الطلب</span><h2>البوكسات</h2><p>أضف أي حجم وحدد سعته وسعره، وسيظهر تلقائياً للزبون.</p></div>
-              <button type="button" className="add-button" onClick={addBox}>+ إضافة بوكس</button>
+              <div><span className="eyebrow">أحجام الطلب</span><h2>البوكسات</h2><p>أضف حجم البوكس وسعته وسعره، وسيظهر للزبون لتخصيصه.</p></div>
+              <button type="button" className="add-button" onClick={addBox}>+ إضافة بوكس جديد</button>
             </div>
             <div className="box-editor-grid">
               {content.boxes.map((box, index) => (
                 <article className="box-editor-card" key={box.id}>
-                  <div className="mini-box-visual"><span>{box.capacity}</span><small>COOKIES</small></div>
+                  <div className="mini-box-visual"><span>{box.capacity}</span><small>قطع</small></div>
                   <div className="field-row">
-                    <label><span>اسم البوكس</span><input dir="ltr" value={box.name} onChange={(event) => updateBox(index, { name: event.target.value })} /></label>
-                    <label><span>المعرّف</span><input dir="ltr" value={box.id} onChange={(event) => updateBox(index, { id: event.target.value })} /></label>
+                    <label><span>اسم البوكس</span><input value={box.name} onChange={(event) => updateBox(index, { name: event.target.value })} /></label>
+                    <label><span>عدد القطع</span><input type="number" min="1" max="16" value={box.capacity} onChange={(event) => updateBox(index, { capacity: Math.max(1, Math.min(16, Number(event.target.value))) })} /></label>
                   </div>
-                  <div className="field-row">
-                    <label><span>عدد القطع</span><input type="number" min="1" max="8" value={box.capacity} onChange={(event) => updateBox(index, { capacity: Math.max(1, Math.min(8, Number(event.target.value))) })} /></label>
-                    <label><span>السعر (د.ل)</span><input type="number" min="0" value={box.price} onChange={(event) => updateBox(index, { price: Number(event.target.value) })} /></label>
-                  </div>
+                  <label><span>السعر (د.ل)</span><input type="number" min="0" value={box.price} onChange={(event) => updateBox(index, { price: Number(event.target.value) })} /></label>
                   <label><span>الوصف</span><textarea rows={2} value={box.description} onChange={(event) => updateBox(index, { description: event.target.value })} /></label>
                   <div className="editor-footer">
                     <label className="toggle-field"><input type="checkbox" checked={box.enabled} onChange={(event) => updateBox(index, { enabled: event.target.checked })} /><span>ظاهر في المتجر</span></label>
@@ -293,8 +275,8 @@ export function AdminDashboard() {
         {section === "stories" && (
           <>
             <div className="admin-section-title">
-              <div><span className="eyebrow">قصص صور المنتجات</span><h2>الستوريات</h2><p>عدّل صور الستوري، العناوين، الأوصاف وحالتها في الواجهة وفي صفحة /stories.</p></div>
-              <button type="button" className="add-button" onClick={addStory}>+ إضافة ستوري</button>
+              <div><span className="eyebrow">صور العروض</span><h2>الستوريات</h2><p>تغيير صور الستوري، العناوين، والأوصاف الظاهرة للعملاء.</p></div>
+              <button type="button" className="add-button" onClick={addStory}>+ إضافة ستوري جديد</button>
             </div>
             <div className="product-editor-list">
               {(content.stories ?? []).map((story, index) => (
@@ -307,16 +289,10 @@ export function AdminDashboard() {
                     </label>
                   </div>
                   <div className="editor-fields">
-                    <div className="field-row field-row--wide">
-                      <label><span>عنوان الستوري العربي</span><input value={story.titleAr || story.title || ""} onChange={(event) => updateStory(index, { titleAr: event.target.value, title: event.target.value })} /></label>
-                      <label><span>عنوان الستوري الإنجليزي</span><input dir="ltr" value={story.titleEn || ""} onChange={(event) => updateStory(index, { titleEn: event.target.value })} /></label>
-                    </div>
-                    <div className="field-row field-row--wide">
-                      <label><span>وصف الستوري العربي</span><input value={story.captionAr || story.caption || ""} onChange={(event) => updateStory(index, { captionAr: event.target.value, caption: event.target.value })} /></label>
-                      <label><span>وصف الستوري الإنجليزي</span><input dir="ltr" value={story.captionEn || ""} onChange={(event) => updateStory(index, { captionEn: event.target.value })} /></label>
-                    </div>
+                    <label><span>عنوان الستوري</span><input value={story.titleAr || story.title || ""} onChange={(event) => updateStory(index, { titleAr: event.target.value, title: event.target.value })} placeholder="عنوان العرض..." /></label>
+                    <label><span>الوصف القصير</span><input value={story.captionAr || story.caption || ""} onChange={(event) => updateStory(index, { captionAr: event.target.value, caption: event.target.value })} placeholder="تفاصيل العرض..." /></label>
                     <div className="editor-footer">
-                      <label className="toggle-field"><input type="checkbox" checked={story.enabled !== false} onChange={(event) => updateStory(index, { enabled: event.target.checked })} /><span>مفعل وموجود في الستوريات</span></label>
+                      <label className="toggle-field"><input type="checkbox" checked={story.enabled !== false} onChange={(event) => updateStory(index, { enabled: event.target.checked })} /><span>ظاهر في الستوريات</span></label>
                       <button type="button" className="danger-link" onClick={() => removeStory(index)}>حذف الستوري</button>
                     </div>
                   </div>
@@ -329,12 +305,12 @@ export function AdminDashboard() {
         {section === "settings" && (
           <>
             <div className="admin-section-title">
-              <div><span className="eyebrow">هوية وتشغيل</span><h2>إعدادات المتجر</h2><p>تحكم في حالة الطلبات، الساعات، المدن، ونص الواجهة.</p></div>
+              <div><span className="eyebrow">إداريات</span><h2>إعدادات المتجر</h2><p>حالة استقبال الطلبات، الساعات، والمدن.</p></div>
             </div>
             <div className="settings-grid">
               <article className="settings-card">
                 <h3>استقبال الطلبات</h3>
-                <label className="toggle-field toggle-field--large"><input type="checkbox" checked={content.store.orderingEnabled} onChange={(event) => update({ ...content, store: { ...content.store, orderingEnabled: event.target.checked } })} /><span>{content.store.orderingEnabled ? "الطلبات مفعّلة" : "الطلبات متوقفة"}</span></label>
+                <label className="toggle-field toggle-field--large"><input type="checkbox" checked={content.store.orderingEnabled} onChange={(event) => update({ ...content, store: { ...content.store, orderingEnabled: event.target.checked } })} /><span>{content.store.orderingEnabled ? "الطلبات مفعّلة حالياً" : "الطلبات متوقفة مؤقتاً"}</span></label>
                 <div className="field-row">
                   <label><span>من الساعة</span><input type="time" value={content.store.openingTime} onChange={(event) => update({ ...content, store: { ...content.store, openingTime: event.target.value } })} /></label>
                   <label><span>إلى الساعة</span><input type="time" value={content.store.closingTime} onChange={(event) => update({ ...content, store: { ...content.store, closingTime: event.target.value } })} /></label>
@@ -346,32 +322,33 @@ export function AdminDashboard() {
                 <h3>واجهة البراند</h3>
                 <label><span>العنوان الرئيسي</span><input value={content.brand.heroTitle} onChange={(event) => update({ ...content, brand: { ...content.brand, heroTitle: event.target.value } })} /></label>
                 <label><span>النص القصير</span><textarea rows={3} value={content.brand.heroText} onChange={(event) => update({ ...content, brand: { ...content.brand, heroText: event.target.value } })} /></label>
-                <label><span>الشعار الإنجليزي</span><input dir="ltr" value={content.brand.slogan} onChange={(event) => update({ ...content, brand: { ...content.brand, slogan: event.target.value } })} /></label>
-                <label><span>مسار صورة الفرشة</span><input dir="ltr" value={content.brand.linerImage} onChange={(event) => update({ ...content, brand: { ...content.brand, linerImage: event.target.value } })} /></label>
               </article>
               <article className="settings-card">
-                <h3>المدن</h3>
+                <h3>المدن المتاحة للتوصيل</h3>
                 <label><span>مدينة في كل سطر</span><textarea rows={8} value={content.store.cities.join("\n")} onChange={(event) => update({ ...content, store: { ...content.store, cities: event.target.value.split("\n").map((city) => city.trim()).filter(Boolean) } })} /></label>
-              </article>
-              <article className="settings-card">
-                <h3>روابط التواصل</h3>
-                {(["instagram", "facebook", "tiktok"] as const).map((network) => (
-                  <label key={network}><span dir="ltr">{network}</span><input dir="ltr" placeholder="أضف الرابط عند توفره" value={content.store.social[network]} onChange={(event) => update({ ...content, store: { ...content.store, social: { ...content.store.social, [network]: event.target.value } } })} /></label>
-                ))}
               </article>
             </div>
           </>
         )}
 
-        {section === "json" && (
-          <div className="json-panel">
+        {section === "backup" && (
+          <>
             <div className="admin-section-title">
-              <div><span className="eyebrow">جاهز لـ GitHub</span><h2>ملف بيانات المتجر</h2><p>نزّل الملف وضعه مكان <span dir="ltr">data/store.json</span> في المستودع، وسيعيد Vercel النشر تلقائياً.</p></div>
-              <button type="button" className="add-button" onClick={exportJson}>تنزيل store.json</button>
+              <div><span className="eyebrow">النسخ الاحتياطي</span><h2>ملف البيانات</h2><p>تحميل أو استعادة نسخة احتياطية لكافة بيانات المتجر.</p></div>
             </div>
-            <pre dir="ltr">{JSON.stringify(content, null, 2)}</pre>
-            <button type="button" className="danger-link reset-link" onClick={resetContent}>استعادة البيانات الأصلية</button>
-          </div>
+            <textarea
+              className="json-box"
+              value={JSON.stringify(content, null, 2)}
+              onChange={(event) => {
+                try {
+                  const parsed = JSON.parse(event.target.value) as unknown;
+                  if (validateContent(parsed)) update(parsed);
+                } catch {
+                  // Keep text while typing
+                }
+              }}
+            />
+          </>
         )}
       </section>
     </main>
