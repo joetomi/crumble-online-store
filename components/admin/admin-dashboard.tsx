@@ -189,7 +189,6 @@ export function AdminDashboard() {
             ["boxes", "البوكسات"],
             ["stories", "الستوريات"],
             ["settings", "إعدادات المتجر"],
-            ["backup", "نسخة احتياطية"],
           ] as const).map(([id, label]) => (
             <button key={id} type="button" className={section === id ? "is-active" : ""} onClick={() => setSection(id)}>
               {label}
@@ -197,15 +196,6 @@ export function AdminDashboard() {
           ))}
         </div>
         <div className="admin-actions">
-          <input
-            ref={importRef}
-            type="file"
-            accept="application/json,.json"
-            hidden
-            onChange={(event) => event.target.files?.[0] && importBackup(event.target.files[0])}
-          />
-          <button type="button" className="secondary-action" onClick={() => importRef.current?.click()}>استعادة نسخة</button>
-          <button type="button" className="secondary-action" onClick={exportBackup}>تحميل نسخة</button>
           <button type="button" className="admin-save" onClick={savePreview}>{dirty ? "حفظ التغييرات •" : "محفوظ"}</button>
         </div>
       </div>
@@ -328,26 +318,6 @@ export function AdminDashboard() {
                 <label><span>مدينة في كل سطر</span><textarea rows={8} value={content.store.cities.join("\n")} onChange={(event) => update({ ...content, store: { ...content.store, cities: event.target.value.split("\n").map((city) => city.trim()).filter(Boolean) } })} /></label>
               </article>
             </div>
-          </>
-        )}
-
-        {section === "backup" && (
-          <>
-            <div className="admin-section-title">
-              <div><span className="eyebrow">النسخ الاحتياطي</span><h2>ملف البيانات</h2><p>تحميل أو استعادة نسخة احتياطية لكافة بيانات المتجر.</p></div>
-            </div>
-            <textarea
-              className="json-box"
-              value={JSON.stringify(content, null, 2)}
-              onChange={(event) => {
-                try {
-                  const parsed = JSON.parse(event.target.value) as unknown;
-                  if (validateContent(parsed)) update(parsed);
-                } catch {
-                  // Keep text while typing
-                }
-              }}
-            />
           </>
         )}
       </section>
