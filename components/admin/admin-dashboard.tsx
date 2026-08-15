@@ -208,10 +208,12 @@ export function AdminDashboard() {
             <div className="product-editor-list">
               {content.products.map((product, index) => (
                 <article className="product-editor" key={product.id}>
-                  <div className="product-editor-image">
-                    <img src={product.image} alt={product.name} />
+                  <div className="product-editor-media">
+                    <div className="product-editor-image">
+                      <img src={product.image} alt={product.name} />
+                    </div>
                     <label className="upload-image">
-                      تغيير الصورة
+                      📷 تغيير الصورة
                       <input type="file" accept="image/*" hidden onChange={(event) => event.target.files?.[0] && uploadProductImage(index, event.target.files[0])} />
                     </label>
                   </div>
@@ -267,10 +269,12 @@ export function AdminDashboard() {
             <div className="product-editor-list">
               {(content.stories ?? []).map((story, index) => (
                 <article className="product-editor" key={story.id}>
-                  <div className="product-editor-image">
-                    <img src={story.image} alt={story.title ?? ""} />
+                  <div className="product-editor-media">
+                    <div className="product-editor-image">
+                      <img src={story.image} alt={story.title ?? ""} />
+                    </div>
                     <label className="upload-image">
-                      تغيير الصورة
+                      📷 تغيير الصورة
                       <input type="file" accept="image/*" hidden onChange={(event) => event.target.files?.[0] && uploadStoryImage(index, event.target.files[0])} />
                     </label>
                   </div>
