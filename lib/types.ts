@@ -1,3 +1,5 @@
+export type OrderMode = "pieces" | "box";
+
 export type Product = {
   id: string;
   name: string;
