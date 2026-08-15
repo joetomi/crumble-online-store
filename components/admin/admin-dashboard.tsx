@@ -219,10 +219,10 @@ export function AdminDashboard() {
                   </div>
                   <div className="editor-fields">
                     <div className="field-row field-row--wide">
-                      <label><span>اسم النكهة</span><input value={product.name} onChange={(event) => updateProduct(index, { name: event.target.value })} placeholder="مثال: Crumble Classic" /></label>
+                      <label><span>اسم النكهة</span><input type="text" value={product.name} onChange={(event) => updateProduct(index, { name: event.target.value })} placeholder="مثال: Crumble Classic" /></label>
                       <label><span>السعر (د.ل)</span><input type="number" min="0" value={product.price ?? ""} placeholder="يحدد لاحقاً" onChange={(event) => updateProduct(index, { price: event.target.value === "" ? null : Number(event.target.value) })} /></label>
                     </div>
-                    <label><span>الوصف القصير</span><input value={product.description} onChange={(event) => updateProduct(index, { description: event.target.value })} placeholder="وصف مكونات النكهة..." /></label>
+                    <label><span>الوصف القصير</span><input type="text" value={product.description} onChange={(event) => updateProduct(index, { description: event.target.value })} placeholder="وصف مكونات النكهة..." /></label>
                     <div className="editor-footer">
                       <label className="toggle-field"><input type="checkbox" checked={product.available} onChange={(event) => updateProduct(index, { available: event.target.checked })} /><span>متوفر في المتجر</span></label>
                       <button type="button" className="danger-link" onClick={() => removeProduct(index)}>حذف النكهة</button>
@@ -245,7 +245,7 @@ export function AdminDashboard() {
                 <article className="box-editor-card" key={box.id}>
                   <div className="mini-box-visual"><span>{box.capacity}</span><small>قطع</small></div>
                   <div className="field-row">
-                    <label><span>اسم البوكس</span><input value={box.name} onChange={(event) => updateBox(index, { name: event.target.value })} /></label>
+                    <label><span>اسم البوكس</span><input type="text" value={box.name} onChange={(event) => updateBox(index, { name: event.target.value })} /></label>
                     <label><span>عدد القطع</span><input type="number" min="1" max="16" value={box.capacity} onChange={(event) => updateBox(index, { capacity: Math.max(1, Math.min(16, Number(event.target.value))) })} /></label>
                   </div>
                   <label><span>السعر (د.ل)</span><input type="number" min="0" value={box.price} onChange={(event) => updateBox(index, { price: Number(event.target.value) })} /></label>
@@ -279,8 +279,8 @@ export function AdminDashboard() {
                     </label>
                   </div>
                   <div className="editor-fields">
-                    <label><span>عنوان الستوري</span><input value={story.titleAr || story.title || ""} onChange={(event) => updateStory(index, { titleAr: event.target.value, title: event.target.value })} placeholder="عنوان العرض..." /></label>
-                    <label><span>الوصف القصير</span><input value={story.captionAr || story.caption || ""} onChange={(event) => updateStory(index, { captionAr: event.target.value, caption: event.target.value })} placeholder="تفاصيل العرض..." /></label>
+                    <label><span>عنوان الستوري</span><input type="text" value={story.titleAr || story.title || ""} onChange={(event) => updateStory(index, { titleAr: event.target.value, title: event.target.value })} placeholder="عنوان العرض..." /></label>
+                    <label><span>الوصف القصير</span><input type="text" value={story.captionAr || story.caption || ""} onChange={(event) => updateStory(index, { captionAr: event.target.value, caption: event.target.value })} placeholder="تفاصيل العرض..." /></label>
                     <div className="editor-footer">
                       <label className="toggle-field"><input type="checkbox" checked={story.enabled !== false} onChange={(event) => updateStory(index, { enabled: event.target.checked })} /><span>ظاهر في الستوريات</span></label>
                       <button type="button" className="danger-link" onClick={() => removeStory(index)}>حذف الستوري</button>
