@@ -15,6 +15,7 @@
     "timezone": "Africa/Tripoli",
     "closedMessage": "الحجز متوقف حالياً",
     "closedDescription": "نعود لاستقبال الطلبات قريباً.",
+    "currency": "د.ل",
     "cities": [
       {
         "id": "city-tripoli",

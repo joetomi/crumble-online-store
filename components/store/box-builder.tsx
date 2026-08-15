@@ -87,7 +87,7 @@ export function BoxBuilder({ content, box, items, onChange, onBoxChange, onConfi
           <div><span>نكهات البوكس</span><b>{isFull ? "اكتمل البوكس" : "اضغط لإضافة النكهة"}</b></div>
           <strong>{items.length}/{box.capacity}</strong>
         </div>
-        <ProductGrid products={products} quantities={quantities} disabled={isFull} onAdd={addProduct} onRemove={removeLast} mode="box" />
+        <ProductGrid products={products} quantities={quantities} disabled={isFull} onAdd={addProduct} onRemove={removeLast} mode="box" currency={content.store.currency} />
       </section>
     </div>
   );

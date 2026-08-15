@@ -10,7 +10,7 @@ type ProductGridProps = {
   onAdd: (product: Product, source: HTMLElement) => void;
   onRemove: (product: Product) => void;
   mode: "pieces" | "box";
-  currency?: string;
+  currency: string;
 };
 
 export function ProductGrid({ products, quantities, disabled, onAdd, onRemove, mode, currency }: ProductGridProps) {
@@ -40,7 +40,7 @@ export function ProductGrid({ products, quantities, disabled, onAdd, onRemove, m
               {quantity === 0 ? (
                 <button className="cr-product-add" type="button" disabled={disabled} onClick={(event) => onAdd(product, event.currentTarget)}>
                   <span>{disabled ? "مكتمل" : "إضافة"}</span>
-                  <b dir="ltr">{product.price && currency ? `${product.price} ${currency}` : "+"}</b>
+                  <b dir="ltr">{product.price !== null ? `${product.price} ${currency}` : "+"}</b>
                 </button>
               ) : (
                 <div className="cr-mini-stepper" aria-label={`كمية ${product.name}`}>
