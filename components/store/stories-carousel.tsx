@@ -129,19 +129,19 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
 
         {/* Invisible Left/Right Story Navigation Zones */}
         <div className="sc-nav-zones">
-          {/* Physical Left Zone -> Previous Story */}
+          {/* Physical Left Zone -> Next Story */}
           <button
             type="button"
             className="sc-nav-zone sc-nav-left"
-            onClick={handlePrev}
-            aria-label="المنشور السابق"
+            onClick={handleNext}
+            aria-label="المنشور التالي"
           />
-          {/* Physical Right Zone -> Next Story */}
+          {/* Physical Right Zone -> Previous Story */}
           <button
             type="button"
             className="sc-nav-zone sc-nav-right"
-            onClick={handleNext}
-            aria-label="المنشور التالي"
+            onClick={handlePrev}
+            aria-label="المنشور السابق"
           />
         </div>
 
@@ -153,32 +153,6 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
 
           <h3 className="sc-title">{titleText}</h3>
           {captionText && <p className="sc-caption">{captionText}</p>}
-
-          <div className="sc-cta-wrapper">
-            <a
-              href={postUrl}
-              target={postUrl.startsWith("#") ? "_self" : "_blank"}
-              rel={postUrl.startsWith("#") ? undefined : "noopener noreferrer"}
-              className="sc-cta-btn"
-            >
-              <span>عرض المنشور</span>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-            </a>
-          </div>
         </div>
       </div>
     </section>
