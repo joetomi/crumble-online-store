@@ -75,8 +75,31 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
     setActiveIndex((current) => (current + 1) % enabledItems.length);
   };
 
+  const touchStartX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+
+    if (Math.abs(deltaX) > 40) {
+      if (deltaX < 0) {
+        // Swiped Left -> Advance to Next Story
+        handleNext();
+      } else {
+        // Swiped Right -> Go Back to Previous Story
+        handlePrev();
+      }
+    }
+  };
+
   const titleText = currentItem.titleAr || currentItem.title || currentItem.titleEn || "";
   const captionText = currentItem.captionAr || currentItem.caption || currentItem.captionEn || "";
+
   return (
     <section className="sc-section" aria-label="أحدث الإعلانات والمنشورات">
       {/* Section Header */}
@@ -86,7 +109,11 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
       </div>
 
       {/* Main Banner Card */}
-      <div className="sc-banner-card">
+      <div
+        className="sc-banner-card"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* All Slide Images with Instant Switching */}
         {enabledItems.map((item, index) => {
           const isActive = index === safeIndex;
@@ -111,7 +138,7 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
         {/* Gradient Readability Overlay */}
         <div className="sc-gradient-overlay" aria-hidden="true" />
 
-        {/* Story Progress Segments (Top) */}
+        {/* Story Progress Segments (Top LTR) */}
         <div className="sc-progress-container" dir="ltr" aria-hidden="true">
           {enabledItems.map((item, index) => {
             const isCompleted = index < safeIndex;
@@ -133,22 +160,26 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
           })}
         </div>
 
-        {/* Invisible Left/Right Story Navigation Zones */}
-        <div className="sc-nav-zones">
-          {/* Physical Left Zone -> Previous Story */}
+        {/* Visible Left / Right Navigation Controls */}
+        <div className="sc-nav-controls">
           <button
             type="button"
-            className="sc-nav-zone sc-nav-left"
+            className="sc-arrow-btn sc-arrow-left"
             onClick={handlePrev}
             aria-label="المنشور السابق"
-          />
-          {/* Physical Right Zone -> Next Story */}
+            title="المنشور السابق"
+          >
+            ‹
+          </button>
           <button
             type="button"
-            className="sc-nav-zone sc-nav-right"
+            className="sc-arrow-btn sc-arrow-right"
             onClick={handleNext}
             aria-label="المنشور التالي"
-          />
+            title="المنشور التالي"
+          >
+            ›
+          </button>
         </div>
 
         {/* Content Overlay (Bottom) */}
