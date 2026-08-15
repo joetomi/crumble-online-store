@@ -8,6 +8,7 @@ import type { OrderMode, Product, StoreContent } from "@/lib/types";
 import { BoxBuilder } from "./box-builder";
 import { OrderSheet } from "./order-sheet";
 import { ProductGrid } from "./product-grid";
+import { StoriesCarousel } from "./stories-carousel";
 
 export function Storefront() {
   const [content, setContent] = useState<StoreContent>(defaultContent);
@@ -92,21 +93,7 @@ export function Storefront() {
         </div>
       </header>
 
-      {stories.length > 0 && (
-        <section className="cr-stories" aria-label="أحدث صور Crumble">
-          <div className="cr-story-track">
-            {stories.map((story, index) => (
-              <figure className="cr-story" key={story.id}>
-                <img src={story.image} alt={story.title} loading={index === 0 ? "eager" : "lazy"} />
-                <figcaption>
-                  <b>{story.title}</b>
-                  <span>{story.caption}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
-      )}
+      {stories.length > 0 && <StoriesCarousel stories={stories} />}
 
       <section className="cr-about-card" aria-labelledby="about-title">
         <span>عن Crumble</span>

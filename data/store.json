@@ -27,29 +27,49 @@
     {
       "id": "fresh-classics",
       "title": "طازجة كل يوم",
+      "titleAr": "طازجة كل يوم",
+      "titleEn": "Freshly Baked Daily",
       "caption": "ثلاث نكهات، ومزاج واحد سعيد.",
+      "captionAr": "ثلاث نكهات، ومزاج واحد سعيد.",
+      "captionEn": "Three signature flavours for every mood.",
       "image": "/stories/story-classics.webp",
+      "postUrl": "#order",
       "enabled": true
     },
     {
       "id": "crumble-box",
       "title": "بوكسك على مزاجك",
+      "titleAr": "بوكسك على مزاجك",
+      "titleEn": "Custom Crumble Box",
       "caption": "كوّن تشكيلتك من النكهات التي تحبها.",
+      "captionAr": "كوّن تشكيلتك من النكهات التي تحبها.",
+      "captionEn": "Build your personalized selection of flavours.",
       "image": "/stories/story-box.webp",
+      "postUrl": "#order",
       "enabled": true
     },
     {
       "id": "colour-selection",
       "title": "نكهات لكل مزاج",
+      "titleAr": "نكهات لكل مزاج",
+      "titleEn": "Flavours For Every Craving",
       "caption": "من الكلاسيك إلى الفستق والتيراميسو.",
+      "captionAr": "من الكلاسيك إلى الفستق والتيراميسو.",
+      "captionEn": "From classic chocolate chunk to pistachio & tiramisu.",
       "image": "/stories/story-colours.webp",
+      "postUrl": "#order",
       "enabled": true
     },
     {
       "id": "signature-selection",
       "title": "تشكيلة Crumble",
+      "titleAr": "تشكيلة Crumble",
+      "titleEn": "The Crumble Craft",
       "caption": "لقطات حقيقية من كوكيزنا الطازجة.",
+      "captionAr": "لقطات حقيقية من كوكيزنا الطازجة.",
+      "captionEn": "Real artisan baking straight from our oven.",
       "image": "/stories/story-selection.webp",
+      "postUrl": "#order",
       "enabled": true
     }
   ],

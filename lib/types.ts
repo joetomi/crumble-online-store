@@ -21,9 +21,14 @@ export type BoxSize = {
 
 export type Story = {
   id: string;
-  title: string;
-  caption: string;
+  title?: string;
+  titleAr?: string;
+  titleEn?: string;
+  caption?: string;
+  captionAr?: string;
+  captionEn?: string;
   image: string;
+  postUrl?: string;
   enabled: boolean;
 };
 
