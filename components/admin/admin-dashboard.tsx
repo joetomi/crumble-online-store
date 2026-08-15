@@ -196,7 +196,14 @@ export function AdminDashboard() {
           ))}
         </div>
         <div className="admin-actions">
-          <button type="button" className="admin-save" onClick={savePreview}>{dirty ? "حفظ التغييرات •" : "محفوظ"}</button>
+          <button
+            type="button"
+            className={`admin-save ${dirty ? "is-dirty" : "is-disabled"}`}
+            onClick={savePreview}
+            disabled={!dirty}
+          >
+            حفظ التغييرات
+          </button>
         </div>
       </div>
 
