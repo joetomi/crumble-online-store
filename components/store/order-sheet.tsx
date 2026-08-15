@@ -17,6 +17,7 @@ type OrderSheetProps = {
 const emptyCustomer: Customer = { name: "", phone: "", city: "" };
 
 export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, onNewOrder }: OrderSheetProps) {
+  const [stepView, setStepView] = useState<"cart" | "checkout">("cart");
   const [customer, setCustomer] = useState(emptyCustomer);
   const [errors, setErrors] = useState<Partial<Customer>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -171,12 +172,62 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
 
             <button className="primary-action" type="button" onClick={onNewOrder}>طلب جديد</button>
           </div>
-        ) : (
-          <form onSubmit={submitOrder} noValidate className="checkout-cards-flow">
+        ) : stepView === "cart" ? (
+          /* STEP 1: CART VIEW - Show ONLY products & prices WITHOUT total */
+          <div className="cart-preview-container">
             <div className="sheet-title">
-              <span className="eyebrow">خطوات تأكيد الطلب</span>
-              <h2 id="order-sheet-title">إكمال البيانات والفاتورة</h2>
-              <p>يرجى تعبئة بطاقة معلومات التوصيل لفتح الفاتورة وحساب التوصيل.</p>
+              <span className="eyebrow">محتويات السلة</span>
+              <h2 id="order-sheet-title">سلة المشتروات</h2>
+              <p>الأصناف التي قمت باختيارها واسعارها.</p>
+            </div>
+
+            <div className="order-summary">
+              <div className="summary-heading">
+                <div><span>نوع الطلب</span><b>{mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
+                <strong dir="ltr">{mode === "box" ? box.name : `${totalPieces} قطع`}</strong>
+              </div>
+
+              <ul className="summary-items-list">
+                {items.map((item) => (
+                  <li key={item.id} className="summary-item-row">
+                    <div className="summary-item-left">
+                      <img src={item.image} alt={item.name} className="summary-item-thumb" />
+                      <div className="summary-item-details">
+                        <span className="summary-item-name">{item.name}</span>
+                        <span className="summary-item-qty">×{item.quantity}</span>
+                      </div>
+                    </div>
+                    <div className="summary-item-price" dir="ltr">
+                      {item.price !== null && item.price !== undefined
+                        ? `${item.price * item.quantity} ${content.store.currency}`
+                        : "يُحدد لاحقاً"}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              className="primary-action sheet-submit"
+              type="button"
+              onClick={() => setStepView("checkout")}
+            >
+              مواصلة وإكمال الطلب ←
+            </button>
+          </div>
+        ) : (
+          /* STEP 2: CHECKOUT VIEW - Sequential Multi-Card Confirmation Page */
+          <form onSubmit={submitOrder} noValidate className="checkout-cards-flow">
+            <div className="checkout-header-row">
+              <button type="button" className="checkout-back-btn" onClick={() => setStepView("cart")}>
+                ← تعديل السلة
+              </button>
+            </div>
+
+            <div className="sheet-title">
+              <span className="eyebrow">صفحة تأكيد الطلب</span>
+              <h2 id="order-sheet-title">تأكيد الطلب والتوصيل</h2>
+              <p>أدخل بياناتك لفتح الفاتورة النهائية وحساب التوصيل.</p>
             </div>
 
             {/* CARD 1: Customer Personal Info & Delivery Location */}
