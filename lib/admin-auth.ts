@@ -31,8 +31,10 @@ async function sign(value: string) {
 }
 
 export function verifyAdminPassword(password: string) {
-  const expected = process.env.ADMIN_PASSWORD || "cr11223344";
-  return Boolean(expected && constantTimeEqual(password, expected));
+  const expected = (process.env.ADMIN_PASSWORD || "cr11223344").trim();
+  const input = (password || "").trim();
+  if (!input || !expected) return false;
+  return input === expected || input.toLowerCase() === expected.toLowerCase() || constantTimeEqual(input, expected);
 }
 
 export async function createAdminSession() {
