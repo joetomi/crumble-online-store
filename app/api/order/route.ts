@@ -68,11 +68,18 @@ export async function POST(request: Request) {
     }
 
     const orderId = createOrderId();
-    const itemLines = items.map(({ product, quantity }) => `• ${escapeHtml(product!.name)} ×${quantity}`).join("\n");
-    const time = new Intl.DateTimeFormat("ar-LY", {
+    const itemLines = items.map(({ product, quantity }) => `${escapeHtml(product!.name)} × ${quantity}`).join("\n");
+    const orderDate = new Intl.DateTimeFormat("en-GB", {
       timeZone: defaultContent.store.timezone,
-      dateStyle: "medium",
-      timeStyle: "short",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date());
+    const orderTime = new Intl.DateTimeFormat("ar-LY", {
+      timeZone: defaultContent.store.timezone,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     }).format(new Date());
     const knownPiecePrices = items.every(({ product }) => product!.price !== null);
     const productsTotal = data.mode === "box"
@@ -84,24 +91,46 @@ export async function POST(request: Request) {
     const grandTotal = productsTotal === null ? null : productsTotal + selectedCity.deliveryFee;
 
     const text = [
-      "<b>طلب جديد — Crumble 🍪</b>",
+      "🍪 <b>طلب جديد | CRUMBLE</b>",
       "",
-      `<b>رقم الطلب:</b> #${orderId}`,
-      `<b>نوع الطلب:</b> ${data.mode === "box" ? "بالبوكس" : "بالقطعة"}`,
+      "━━━━━━━━━━━━━━━━━━",
+      "",
+      "<b>رقم الطلب</b>",
+      `<code>#${orderId}</code>`,
+      "",
+      "<b>نوع الطلب</b>",
+      data.mode === "box" ? "بالبوكس" : "بالقطعة",
+      "",
+      "━━━━━━━━━━━━━━━━━━",
+      "",
+      "👤 <b>بيانات العميل</b>",
       "",
       `<b>الاسم:</b> ${escapeHtml(name)}`,
       `<b>الهاتف:</b> ${escapeHtml(phone)}`,
       `<b>المدينة:</b> ${escapeHtml(city)}`,
       "",
-      ...(box ? [`<b>${escapeHtml(box.name)}</b>`] : ["<b>الطلب:</b>"]),
+      "━━━━━━━━━━━━━━━━━━",
+      "",
+      "🛍 <b>تفاصيل الطلب</b>",
+      "",
+      ...(box ? [`<b>${escapeHtml(box.name)}</b>`, ""] : []),
       itemLines,
       "",
       `<b>عدد القطع:</b> ${totalPieces}`,
-      `<b>المنتجات:</b> ${productsTotal === null ? "يُحدد لاحقاً" : `${productsTotal} ${defaultContent.store.currency}`}`,
-      `<b>التوصيل:</b> ${selectedCity.deliveryFee} ${defaultContent.store.currency}`,
-      `<b>الإجمالي:</b> ${grandTotal === null ? "يُحدد لاحقاً" : `${grandTotal} ${defaultContent.store.currency}`}`,
       "",
-      `<b>وقت الطلب:</b> ${escapeHtml(time)}`,
+      "━━━━━━━━━━━━━━━━━━",
+      "",
+      "💳 <b>ملخص الحساب</b>",
+      "",
+      `المنتجات: <b>${productsTotal === null ? "يُحدد لاحقاً" : `${productsTotal} ${defaultContent.store.currency}`}</b>`,
+      `التوصيل: <b>${selectedCity.deliveryFee} ${defaultContent.store.currency}</b>`,
+      "",
+      `<b>الإجمالي: ${grandTotal === null ? "يُحدد لاحقاً" : `${grandTotal} ${defaultContent.store.currency}`}</b>`,
+      "",
+      "━━━━━━━━━━━━━━━━━━",
+      "",
+      "🕒 <b>وقت الطلب</b>",
+      `${orderDate} — ${escapeHtml(orderTime)}`,
     ].join("\n");
 
     const telegramResponse = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
