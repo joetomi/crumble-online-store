@@ -36,6 +36,14 @@ export function AdminDashboard() {
   }
 
   async function savePreview() {
+    for (const prod of content.products) {
+      if (prod.price === null || prod.price === undefined || isNaN(Number(prod.price)) || Number(prod.price) < 0) {
+        setShowConfirmModal(false);
+        flash(`يجب أن تحدد سعر المنتج "${prod.name || "بدون اسم"}"`);
+        return;
+      }
+    }
+
     setShowConfirmModal(false);
     writeLocalContent(content);
     setPublishing(true);
@@ -63,7 +71,7 @@ export function AdminDashboard() {
       name: "اكتب اسم الصنف هنا",
       description: "اكتب وصف الصنف والمكونات هنا",
       image: "/brand/crumble-logo.png",
-      price: null,
+      price: 12,
       available: true,
       category: "new",
       variant: "signature",

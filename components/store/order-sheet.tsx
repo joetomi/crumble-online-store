@@ -44,8 +44,14 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
     return Object.entries(source)
       .filter(([, quantity]) => quantity > 0)
       .map(([id, quantity]) => {
-        const product = content.products.find((entry) => entry.id === id) as Product;
-        return { id, name: product.name, quantity, price: product.price };
+        const product = content.products.find((entry) => entry.id === id);
+        return {
+          id,
+          name: product ? product.name : "صنف",
+          image: product?.image || "/brand/crumble-logo.png",
+          quantity,
+          price: product ? product.price : null,
+        };
       });
   }, [mode, quantities, boxItems, content.products]);
 
@@ -129,8 +135,23 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
                 <div><span>نوع الطلب</span><b>{mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
                 <strong dir="ltr">{mode === "box" ? box.name : `${totalPieces} قطع`}</strong>
               </div>
-              <ul>
-                {items.map((item) => <li key={item.id}><span dir="ltr">{item.name}</span><b dir="ltr">×{item.quantity}</b></li>)}
+              <ul className="summary-items-list">
+                {items.map((item) => (
+                  <li key={item.id} className="summary-item-row">
+                    <div className="summary-item-left">
+                      <img src={item.image} alt={item.name} className="summary-item-thumb" />
+                      <div className="summary-item-details">
+                        <span className="summary-item-name">{item.name}</span>
+                        <span className="summary-item-qty">×{item.quantity}</span>
+                      </div>
+                    </div>
+                    <div className="summary-item-price" dir="ltr">
+                      {item.price !== null && item.price !== undefined
+                        ? `${item.price * item.quantity} ${content.store.currency}`
+                        : "يُحدد لاحقاً"}
+                    </div>
+                  </li>
+                ))}
               </ul>
               <div className="summary-total">
                 <span>الإجمالي</span>

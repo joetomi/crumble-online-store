@@ -867,19 +867,73 @@ body:has(.cr-profile) .order-summary {
 body:has(.cr-profile) .summary-heading { display: flex; align-items: center; justify-content: space-between; }
 body:has(.cr-profile) .summary-heading span { font-size: 9px; color: var(--cr-muted); }
 body:has(.cr-profile) .summary-heading b { font-size: 13px; color: var(--cr-brown-deep); }
-body:has(.cr-profile) .summary-heading strong { font-family: 'Outfit', sans-serif; font-size: 13px; }
-
-body:has(.cr-profile) .order-summary ul {
+body:has(.cr-profile) .order-summary .summary-items-list,
+.summary-items-list {
   list-style: none;
   margin: 12px 0;
   padding: 10px 0;
   border-block: 1px dashed rgba(82, 53, 37, .12);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
-body:has(.cr-profile) .order-summary li { display: flex; justify-content: space-between; font-size: 11.5px; }
+body:has(.cr-profile) .summary-item-row,
+.summary-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.summary-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.summary-item-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--cr-soft, #FAF6F0);
+  border: 1px solid rgba(82, 53, 37, 0.12);
+  flex-shrink: 0;
+}
+
+.summary-item-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.summary-item-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--cr-brown-deep, #2D1A10);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.summary-item-qty {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--cr-brown, #AA7858);
+  flex-shrink: 0;
+}
+
+.summary-item-price {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--cr-brown-deep, #2D1A10);
+  flex-shrink: 0;
+}
 
 body:has(.cr-profile) .summary-total { display: flex; justify-content: space-between; align-items: center; }
 body:has(.cr-profile) .summary-total span { font-size: 12px; font-weight: 700; }
