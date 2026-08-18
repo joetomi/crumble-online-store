@@ -24,13 +24,13 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       type: "website",
       locale: "ar_LY",
-      images: [{ url: "/og.png", width: 1400, height: 700, alt: "Crumble — Crunch your mood!" }],
+      images: [{ url: "/wep-BG.png", width: 3240, height: 1350, alt: "Crumble — Crunch your mood!" }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: ["/og.png"],
+      images: ["/wep-BG.png"],
     },
   };
 }
