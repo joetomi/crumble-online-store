@@ -1,7 +1,7 @@
 import { defaultContent } from "@/lib/store-content";
 import { getStoreStatus } from "@/lib/store-status";
 import type { Customer, OrderMode } from "@/lib/types";
-import { normalizeCities } from "@/lib/types";
+import { normalizeAllowedCookieTypes, normalizeCities, normalizeCookieType } from "@/lib/types";
 
 type IncomingOrder = {
   mode?: OrderMode;
@@ -60,6 +60,13 @@ export async function POST(request: Request) {
 
     if ((data.mode === "box" && (!box || totalPieces !== box.capacity)) || (data.mode === "pieces" && totalPieces < 1)) {
       return Response.json({ error: "invalid_quantity" }, { status: 400 });
+    }
+
+    if (box) {
+      const allowedCookieTypes = normalizeAllowedCookieTypes(box.allowedCookieTypes);
+      if (items.some(({ product }) => !allowedCookieTypes.includes(normalizeCookieType(product?.cookieType)))) {
+        return Response.json({ error: "invalid_box_product" }, { status: 400 });
+      }
     }
 
     const token = process.env.TELEGRAM_BOT_TOKEN?.trim();

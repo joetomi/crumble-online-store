@@ -1,5 +1,6 @@
 import defaultContentJson from "@/data/store.json";
 import type { StoreContent } from "@/lib/types";
+import { normalizeAllowedCookieTypes, normalizeCookieType } from "@/lib/types";
 
 export const CONTENT_STORAGE_KEY = "crumble-store-content-v1";
 
@@ -20,10 +21,15 @@ function normalizeContent(content: StoreContent): StoreContent {
       currency,
     },
     stories: content.stories?.length ? content.stories : defaultContent.stories,
+    boxes: content.boxes.map((box) => ({
+      ...box,
+      allowedCookieTypes: normalizeAllowedCookieTypes(box.allowedCookieTypes),
+    })),
     products: content.products.map((product) => {
       const fallback = defaultsById.get(product.id);
       const usesLegacyImage = product.image.startsWith("/products/");
-      return usesLegacyImage && fallback ? { ...product, image: fallback.image } : product;
+      const normalized = { ...product, cookieType: normalizeCookieType(product.cookieType) };
+      return usesLegacyImage && fallback ? { ...normalized, image: fallback.image } : normalized;
     }),
   };
 }

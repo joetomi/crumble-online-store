@@ -3,6 +3,7 @@
 
 import { useMemo } from "react";
 import type { BoxSize, Product, StoreContent } from "@/lib/types";
+import { COOKIE_TYPE_LABELS, normalizeAllowedCookieTypes, normalizeCookieType } from "@/lib/types";
 import { ProductGrid } from "./product-grid";
 
 type BoxBuilderProps = {
@@ -16,7 +17,10 @@ type BoxBuilderProps = {
 };
 
 export function BoxBuilder({ content, box, items, onChange, onBoxChange, onConfirm, canOrder }: BoxBuilderProps) {
-  const products = content.products.filter((product) => product.available);
+  const allowedCookieTypes = normalizeAllowedCookieTypes(box.allowedCookieTypes);
+  const products = content.products.filter(
+    (product) => product.available && allowedCookieTypes.includes(normalizeCookieType(product.cookieType)),
+  );
   const productMap = useMemo(() => new Map(content.products.map((product) => [product.id, product])), [content.products]);
   const quantities = items.reduce<Record<string, number>>((result, id) => {
     result[id] = (result[id] ?? 0) + 1;
@@ -70,7 +74,11 @@ export function BoxBuilder({ content, box, items, onChange, onBoxChange, onConfi
         </div>
 
         <div className="cr-box-note">
-          <div><b>{isFull ? "بوكسك جاهز" : `باقي ${box.capacity - items.length} قطع`}</b><span>{box.description}</span></div>
+          <div>
+            <b>{isFull ? "بوكسك جاهز" : `باقي ${box.capacity - items.length} قطع`}</b>
+            <span>{box.description}</span>
+            <small>يقبل: {allowedCookieTypes.map((type) => COOKIE_TYPE_LABELS[type]).join("، ")}</small>
+          </div>
           <strong dir="ltr">{box.price} {content.store.currency}</strong>
         </div>
 
@@ -87,7 +95,11 @@ export function BoxBuilder({ content, box, items, onChange, onBoxChange, onConfi
           <div><span>نكهات البوكس</span><b>{isFull ? "اكتمل البوكس" : "اضغط لإضافة النكهة"}</b></div>
           <strong>{items.length}/{box.capacity}</strong>
         </div>
-        <ProductGrid products={products} quantities={quantities} disabled={isFull} onAdd={addProduct} onRemove={removeLast} mode="box" currency={content.store.currency} />
+        {products.length ? (
+          <ProductGrid products={products} quantities={quantities} disabled={isFull} onAdd={addProduct} onRemove={removeLast} mode="box" currency={content.store.currency} />
+        ) : (
+          <p className="cr-empty">لا توجد نكهات متاحة من النوع المسموح لهذا البوكس حالياً.</p>
+        )}
       </section>
     </div>
   );

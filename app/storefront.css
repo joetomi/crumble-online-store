@@ -814,6 +814,7 @@
 .cr-box-note > div { display: flex; flex-direction: column; }
 .cr-box-note b { font-size: 12px; font-weight: 700; }
 .cr-box-note span { margin-top: 3px; color: var(--cr-muted); font-size: 9.5px; font-weight: 300; }
+.cr-box-note small { margin-top: 3px; color: var(--cr-muted); font-size: 9px; font-weight: 700; }
 .cr-box-note > strong { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 800; color: var(--cr-brown); }
 
 .cr-box-buttons { margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px; }

@@ -118,7 +118,8 @@
       "capacity": 4,
       "price": 40,
       "enabled": true,
-      "description": "أربع قطع من اختيارك داخل بوكس Crumble."
+      "description": "أربع قطع من اختيارك داخل بوكس Crumble.",
+      "allowedCookieTypes": ["mini", "classic", "crumble"]
     }
   ],
   "products": [
@@ -131,7 +132,8 @@
       "available": true,
       "category": "classic",
       "variant": "crumble",
-      "accent": "#9a6749"
+      "accent": "#9a6749",
+      "cookieType": "crumble"
     },
     {
       "id": "crumble-red-velvet",
@@ -142,7 +144,8 @@
       "available": true,
       "category": "red-velvet",
       "variant": "crumble",
-      "accent": "#a8463f"
+      "accent": "#a8463f",
+      "cookieType": "crumble"
     },
     {
       "id": "crumble-lotus",
@@ -153,7 +156,8 @@
       "available": true,
       "category": "lotus",
       "variant": "crumble",
-      "accent": "#bd7b3d"
+      "accent": "#bd7b3d",
+      "cookieType": "crumble"
     },
     {
       "id": "tiramisu",
@@ -164,7 +168,8 @@
       "available": true,
       "category": "special",
       "variant": "signature",
-      "accent": "#74503b"
+      "accent": "#74503b",
+      "cookieType": "crumble"
     },
     {
       "id": "cinnabon",
@@ -175,7 +180,8 @@
       "available": true,
       "category": "special",
       "variant": "signature",
-      "accent": "#c18b54"
+      "accent": "#c18b54",
+      "cookieType": "crumble"
     },
     {
       "id": "crumble-pistachio",
@@ -186,7 +192,8 @@
       "available": true,
       "category": "pistachio",
       "variant": "crumble",
-      "accent": "#77875b"
+      "accent": "#77875b",
+      "cookieType": "crumble"
     },
     {
       "id": "crumble-blue-velvet",
@@ -197,7 +204,8 @@
       "available": true,
       "category": "blue-velvet",
       "variant": "crumble",
-      "accent": "#759066"
+      "accent": "#759066",
+      "cookieType": "crumble"
     }
   ]
 }

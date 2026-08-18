@@ -1,5 +1,24 @@
 export type OrderMode = "pieces" | "box";
 
+export const COOKIE_TYPES = ["mini", "classic", "crumble"] as const;
+export type CookieType = (typeof COOKIE_TYPES)[number];
+
+export const COOKIE_TYPE_LABELS: Record<CookieType, string> = {
+  mini: "ميني",
+  classic: "كلاسيك",
+  crumble: "كرمبل",
+};
+
+export function normalizeCookieType(value: unknown): CookieType {
+  return COOKIE_TYPES.includes(value as CookieType) ? value as CookieType : "crumble";
+}
+
+export function normalizeAllowedCookieTypes(value: unknown): CookieType[] {
+  if (!Array.isArray(value)) return [...COOKIE_TYPES];
+  const normalized = [...new Set(value.filter((item): item is CookieType => COOKIE_TYPES.includes(item as CookieType)))];
+  return normalized.length ? normalized : [...COOKIE_TYPES];
+}
+
 export type Product = {
   id: string;
   name: string;
@@ -10,6 +29,7 @@ export type Product = {
   category: string;
   variant: string;
   accent: string;
+  cookieType: CookieType;
 };
 
 export type BoxSize = {
@@ -19,6 +39,7 @@ export type BoxSize = {
   price: number;
   enabled: boolean;
   description: string;
+  allowedCookieTypes: CookieType[];
 };
 
 export type Story = {

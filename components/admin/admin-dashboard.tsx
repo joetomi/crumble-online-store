@@ -8,8 +8,8 @@ import {
   readLocalContent,
   writeLocalContent,
 } from "@/lib/store-content";
-import type { BoxSize, Product, Story, StoreContent, CityOption } from "@/lib/types";
-import { normalizeCities } from "@/lib/types";
+import type { BoxSize, Product, Story, StoreContent, CityOption, CookieType } from "@/lib/types";
+import { COOKIE_TYPES, COOKIE_TYPE_LABELS, normalizeAllowedCookieTypes, normalizeCities } from "@/lib/types";
 
 type AdminSection = "products" | "boxes" | "stories" | "settings" | "backup";
 
@@ -77,6 +77,7 @@ export function AdminDashboard() {
       category: "new",
       variant: "signature",
       accent: "#aa7858",
+      cookieType: "crumble",
     };
     update({ ...content, products: [...content.products, product] });
     window.setTimeout(() => {
@@ -109,6 +110,7 @@ export function AdminDashboard() {
       price: 0,
       enabled: true,
       description: "اكتب وصف البوكس وتفاصيله هنا",
+      allowedCookieTypes: [...COOKIE_TYPES],
     };
     update({ ...content, boxes: [...content.boxes, box] });
     window.setTimeout(() => {
@@ -129,6 +131,18 @@ export function AdminDashboard() {
 
   function removeBox(index: number) {
     update({ ...content, boxes: content.boxes.filter((_, boxIndex) => boxIndex !== index) });
+  }
+
+  function toggleBoxCookieType(index: number, cookieType: CookieType) {
+    const current = normalizeAllowedCookieTypes(content.boxes[index].allowedCookieTypes);
+    const next = current.includes(cookieType)
+      ? current.filter((item) => item !== cookieType)
+      : [...current, cookieType];
+    if (!next.length) {
+      flash("يجب اختيار نوع كوكيز واحد على الأقل للبوكس.");
+      return;
+    }
+    updateBox(index, { allowedCookieTypes: next });
   }
 
   function addStory() {
@@ -291,6 +305,12 @@ export function AdminDashboard() {
                       <label><span>اسم الصنف</span><input type="text" value={product.name} onChange={(event) => updateProduct(index, { name: event.target.value })} placeholder="مثال: كوكيز كلاسيك" /></label>
                       <label><span>السعر (د.ل)</span><input type="number" min="0" value={product.price ?? ""} placeholder="يحدد لاحقاً" onChange={(event) => updateProduct(index, { price: event.target.value === "" ? null : Number(event.target.value) })} /></label>
                     </div>
+                    <label>
+                      <span>تصنيف الكوكيز</span>
+                      <select value={product.cookieType ?? "crumble"} onChange={(event) => updateProduct(index, { cookieType: event.target.value as CookieType })}>
+                        {COOKIE_TYPES.map((cookieType) => <option key={cookieType} value={cookieType}>{COOKIE_TYPE_LABELS[cookieType]}</option>)}
+                      </select>
+                    </label>
                     <label><span>الوصف القصير</span><textarea rows={2} value={product.description} onChange={(event) => updateProduct(index, { description: event.target.value })} placeholder="وصف مكونات الصنف..." /></label>
                     <div className="editor-footer">
                       <div
@@ -336,6 +356,21 @@ export function AdminDashboard() {
                   </div>
                   <label><span>السعر (د.ل)</span><input type="number" min="0" value={box.price} onChange={(event) => updateBox(index, { price: Number(event.target.value) })} /></label>
                   <label><span>الوصف</span><textarea rows={2} value={box.description} onChange={(event) => updateBox(index, { description: event.target.value })} /></label>
+                  <fieldset className="cookie-type-picker">
+                    <legend>أنواع الكوكيز المسموح بها داخل البوكس</legend>
+                    <div>
+                      {COOKIE_TYPES.map((cookieType) => {
+                        const checked = normalizeAllowedCookieTypes(box.allowedCookieTypes).includes(cookieType);
+                        return (
+                          <label className={checked ? "is-selected" : ""} key={cookieType}>
+                            <input type="checkbox" checked={checked} onChange={() => toggleBoxCookieType(index, cookieType)} />
+                            <span>{COOKIE_TYPE_LABELS[cookieType]}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <small>يمكنك اختيار نوع واحد أو أكثر. لن تظهر داخل هذا البوكس إلا النكهات المطابقة.</small>
+                  </fieldset>
                   <div className="editor-footer">
                     <div
                       className={`segmented-switch ${box.enabled ? "is-option1" : "is-option2"}`}

@@ -120,6 +120,7 @@ export default function CheckoutPage() {
           invalid_city: "المدينة المختارة غير متاحة حالياً. اخترها من القائمة من جديد.",
           invalid_items: "بعض أصناف الطلب تغيرت. ارجع للمتجر وحدّث السلة.",
           invalid_quantity: "عدد القطع لا يطابق حجم البوكس المختار.",
+          invalid_box_product: "يحتوي البوكس على نكهة من نوع غير مسموح. ارجع للمتجر وأعد اختيار النكهات.",
         };
         throw new Error(messages[result.error ?? ""] ?? "تعذر إرسال الطلب حالياً. حاول مرة أخرى.");
       }
