@@ -129,10 +129,10 @@
   "products": [
     {
       "id": "crumble-classic",
-      "name": "Crumble Classic",
-      "description": "شوكولاتة غنية وقلب طري.",
+      "name": "كرامبل كلاسيك",
+      "description": "وزن 80 جم، مع حشوة من حبوب الشوكولاتة بالحليب البلجيكية، وقطة شوكولاتة ميلكا",
       "image": "/uploads/product-crumble-classic-a195281e94c1.png",
-      "price": 12,
+      "price": 10,
       "available": true,
       "category": "classic",
       "variant": "crumble",
@@ -141,10 +141,10 @@
     },
     {
       "id": "crumble-red-velvet",
-      "name": "Crumble Red Velvet",
-      "description": "ريد فيلفيت وشوكولاتة بيضاء.",
+      "name": "كرامبل ريد فيلفيت",
+      "description": "وزن 80 جم، مع حشوة من حبوب الشوكولاتة البيضاء البلجيكية، وكريم الريد فيلفيت، تزينها شوكولاتة ميلكا",
       "image": "/uploads/product-crumble-red-velvet-8daee330cd9d.png",
-      "price": 12,
+      "price": 10,
       "available": true,
       "category": "red-velvet",
       "variant": "crumble",
