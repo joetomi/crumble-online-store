@@ -89,17 +89,6 @@
       "enabled": true
     },
     {
-      "id": "story-4",
-      "title": "تشكيلة الخبز اليومية",
-      "titleAr": "تشكيلة الخبز اليومية",
-      "titleEn": "Fresh Daily Baking",
-      "caption": "خبز محلي يومي طازج من الفرن مباشرة.",
-      "captionAr": "خبز محلي يومي طازج من الفرن مباشرة.",
-      "captionEn": "Artisanal cookies baked fresh every single day.",
-      "image": "/stories/story-4.jpg",
-      "enabled": true
-    },
-    {
       "id": "story-5",
       "title": "تشكيلة البوكس الفاخرة",
       "titleAr": "تشكيلة البوكس الفاخرة",
