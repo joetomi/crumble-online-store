@@ -43,10 +43,15 @@ export function ProductGrid({ products, quantities, disabled, onAdd, onRemove, m
                   <b dir="ltr">{product.price !== null ? `${product.price} ${currency}` : "+"}</b>
                 </button>
               ) : (
-                <div className="cr-mini-stepper" aria-label={`كمية ${product.name}`}>
-                  <button type="button" aria-label={`إنقاص ${product.name}`} onClick={() => onRemove(product)}>−</button>
-                  <span aria-live="polite" dir="ltr">{quantity}</span>
-                  <button type="button" aria-label={`زيادة ${product.name}`} disabled={disabled} onClick={(event) => onAdd(product, event.currentTarget)}>+</button>
+                <div className="cr-selected-product-controls">
+                  <b className="cr-selected-product-price" dir="ltr">
+                    {product.price !== null ? `${product.price} ${currency}` : "السعر قريباً"}
+                  </b>
+                  <div className="cr-mini-stepper" aria-label={`كمية ${product.name}`}>
+                    <button type="button" aria-label={`إنقاص ${product.name}`} onClick={() => onRemove(product)}>−</button>
+                    <span aria-live="polite" dir="ltr">{quantity}</span>
+                    <button type="button" aria-label={`زيادة ${product.name}`} disabled={disabled} onClick={(event) => onAdd(product, event.currentTarget)}>+</button>
+                  </div>
                 </div>
               )}
             </div>

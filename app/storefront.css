@@ -658,7 +658,25 @@
 .cr-product-add b { color: var(--cr-brown); font-size: 13px; font-weight: 700; }
 .cr-product-add:disabled { cursor: default; }
 
+.cr-selected-product-controls {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.cr-selected-product-price {
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-inline: 2px;
+  color: var(--cr-brown);
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .cr-mini-stepper {
+  margin-top: 4px;
   display: grid;
   grid-template-columns: 1fr 32px 1fr;
   overflow: hidden;
