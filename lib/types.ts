@@ -1,4 +1,4 @@
-export type OrderMode = "pieces" | "box";
+export type OrderMode = "pieces" | "box" | "mixed";
 
 export const COOKIE_TYPES = ["mini", "classic", "crumble"] as const;
 export type CookieType = (typeof COOKIE_TYPES)[number];

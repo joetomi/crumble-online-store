@@ -7,6 +7,8 @@ type IncomingOrder = {
   mode?: OrderMode;
   customer?: Customer;
   items?: Array<{ id?: string; quantity?: number }>;
+  pieceItems?: Array<{ id?: string; quantity?: number }>;
+  boxItems?: Array<{ id?: string; quantity?: number }>;
   box?: { id?: string };
 };
 
@@ -44,27 +46,31 @@ export async function POST(request: Request) {
     const productMap = new Map(
       defaultContent.products.filter((product) => product.available).map((product) => [product.id, product]),
     );
-    const items = (data.items ?? []).map((item) => ({
+    const normalizeItems = (source: Array<{ id?: string; quantity?: number }> = []) => source.map((item) => ({
       product: item.id ? productMap.get(item.id) : undefined,
       quantity: Math.floor(Number(item.quantity ?? 0)),
     }));
+    const pieceItems = normalizeItems(data.pieceItems ?? (data.mode === "pieces" ? data.items : []));
+    const boxItems = normalizeItems(data.boxItems ?? (data.mode === "box" ? data.items : []));
+    const items = [...pieceItems, ...boxItems];
 
     if (!items.length || items.some((item) => !item.product || item.quantity < 1 || item.quantity > 50)) {
       return Response.json({ error: "invalid_items" }, { status: 400 });
     }
 
     const totalPieces = items.reduce((total, item) => total + item.quantity, 0);
-    const box = data.mode === "box"
+    const box = boxItems.length
       ? defaultContent.boxes.find((entry) => entry.enabled && entry.id === data.box?.id)
       : undefined;
 
-    if ((data.mode === "box" && (!box || totalPieces !== box.capacity)) || (data.mode === "pieces" && totalPieces < 1)) {
+    const boxPieceCount = boxItems.reduce((total, item) => total + item.quantity, 0);
+    if ((boxItems.length && (!box || boxPieceCount !== box.capacity)) || (!pieceItems.length && !boxItems.length)) {
       return Response.json({ error: "invalid_quantity" }, { status: 400 });
     }
 
     if (box) {
       const allowedCookieTypes = normalizeAllowedCookieTypes(box.allowedCookieTypes);
-      if (items.some(({ product }) => !allowedCookieTypes.includes(normalizeCookieType(product?.cookieType)))) {
+      if (boxItems.some(({ product }) => !allowedCookieTypes.includes(normalizeCookieType(product?.cookieType)))) {
         return Response.json({ error: "invalid_box_product" }, { status: 400 });
       }
     }
@@ -76,7 +82,8 @@ export async function POST(request: Request) {
     }
 
     const orderId = createOrderId();
-    const itemLines = items.map(({ product, quantity }) => `${escapeHtml(product!.name)} × ${quantity}`).join("\n");
+    const pieceLines = pieceItems.map(({ product, quantity }) => `${escapeHtml(product!.name)} × ${quantity}`).join("\n");
+    const boxLines = boxItems.map(({ product, quantity }) => `${escapeHtml(product!.name)} × ${quantity}`).join("\n");
     const orderDate = new Intl.DateTimeFormat("en-GB", {
       timeZone: defaultContent.store.timezone,
       day: "2-digit",
@@ -89,12 +96,9 @@ export async function POST(request: Request) {
       minute: "2-digit",
       hour12: true,
     }).format(new Date());
-    const knownPiecePrices = items.every(({ product }) => product!.price !== null);
-    const productsTotal = data.mode === "box"
-      ? box!.price
-      : knownPiecePrices
-        ? items.reduce((total, { product, quantity }) => total + product!.price! * quantity, 0)
-        : null;
+    const knownPiecePrices = pieceItems.every(({ product }) => product!.price !== null);
+    const piecesTotal = knownPiecePrices ? pieceItems.reduce((total, { product, quantity }) => total + product!.price! * quantity, 0) : null;
+    const productsTotal = piecesTotal === null ? null : piecesTotal + (box?.price ?? 0);
     const selectedCity = validCities.find((entry) => entry.name === city)!;
     const grandTotal = productsTotal === null ? null : productsTotal + selectedCity.deliveryFee;
 
@@ -107,7 +111,7 @@ export async function POST(request: Request) {
       `<code>#${orderId}</code>`,
       "",
       "<b>نوع الطلب</b>",
-      data.mode === "box" ? "بالبوكس" : "بالقطعة",
+      data.mode === "mixed" ? "قطع + بوكس" : data.mode === "box" ? "بالبوكس" : "بالقطعة",
       "",
       "━━━━━━━━━━━━━━━━━━",
       "",
@@ -122,8 +126,8 @@ export async function POST(request: Request) {
       "",
       "🛍 <b>تفاصيل الطلب</b>",
       "",
-      ...(box ? [`<b>${escapeHtml(box.name)}</b>`, ""] : []),
-      itemLines,
+      ...(pieceLines ? ["<b>بالقطعة</b>", pieceLines, ""] : []),
+      ...(box ? [`<b>${escapeHtml(box.name)}</b>`, boxLines, ""] : []),
       "",
       `<b>عدد القطع:</b> ${totalPieces}`,
       "",

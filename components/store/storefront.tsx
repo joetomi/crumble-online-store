@@ -12,7 +12,7 @@ import { StoriesCarousel } from "./stories-carousel";
 
 export function Storefront() {
   const [content, setContent] = useState<StoreContent>(defaultContent);
-  const [mode, setMode] = useState<OrderMode>("pieces");
+  const [mode, setMode] = useState<Exclude<OrderMode, "mixed">>("pieces");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [boxItems, setBoxItems] = useState<string[]>([]);
   const [activeBoxId, setActiveBoxId] = useState(defaultContent.boxes.find((box) => box.enabled)?.id ?? "");
@@ -65,14 +65,32 @@ export function Storefront() {
     setBoxItems([]);
   }
 
-  function selectMode(nextMode: OrderMode) {
+  function selectMode(nextMode: Exclude<OrderMode, "mixed">) {
     setMode(nextMode);
     document.querySelector("#flavours")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function newOrder() {
-    if (mode === "pieces") setQuantities({});
-    else setBoxItems([]);
+    setQuantities({});
+    setBoxItems([]);
+    setSheetOpen(false);
+  }
+
+  function removeCartPiece(id: string) {
+    setQuantities((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+  }
+
+  function removeCartBoxItem(id: string) {
+    setBoxItems((current) => current.filter((itemId) => itemId !== id));
+  }
+
+  function clearCart() {
+    setQuantities({});
+    setBoxItems([]);
     setSheetOpen(false);
   }
 
@@ -173,12 +191,22 @@ export function Storefront() {
             <circle cx="20" cy="21" r="1" />
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
-          <span className="cr-fab-badge">{mode === "pieces" ? pieceCount : boxItems.length}</span>
+          <span className="cr-fab-badge">{pieceCount + boxItems.length}</span>
         </button>
       )}
 
       {sheetOpen && activeBox && (
-        <OrderSheet content={content} mode={mode} quantities={quantities} boxItems={boxItems} box={activeBox} onClose={() => setSheetOpen(false)} onNewOrder={newOrder} />
+        <OrderSheet
+          content={content}
+          quantities={quantities}
+          boxItems={boxItems}
+          box={activeBox}
+          onClose={() => setSheetOpen(false)}
+          onNewOrder={newOrder}
+          onRemovePiece={removeCartPiece}
+          onRemoveBoxItem={removeCartBoxItem}
+          onClearCart={clearCart}
+        />
       )}
     </main>
   );

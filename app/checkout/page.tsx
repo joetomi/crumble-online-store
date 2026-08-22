@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { defaultContent, readLocalContent } from "@/lib/store-content";
-import { loadCartSession, clearCartSession } from "@/lib/cart-session";
+import { loadCartSession, saveCartSession, clearCartSession } from "@/lib/cart-session";
 import type { Customer, StoreContent, CartSession } from "@/lib/types";
 import { normalizeCities } from "@/lib/types";
 
@@ -31,21 +31,16 @@ export default function CheckoutPage() {
   const citiesList = useMemo(() => normalizeCities(content.store.cities), [content.store.cities]);
   const selectedCityObj = useMemo(() => citiesList.find((c) => c.name === customer.city), [citiesList, customer.city]);
 
-  const mode = cartSession?.mode || "pieces";
+  const hasPieces = Boolean(cartSession && Object.values(cartSession.quantities).some((quantity) => quantity > 0));
+  const hasBox = Boolean(cartSession?.boxItems?.length);
+  const mode = hasPieces && hasBox ? "mixed" : hasBox ? "box" : "pieces";
   const activeBox = useMemo(() => {
     return content.boxes.find((b) => b.id === cartSession?.activeBoxId) || content.boxes[0];
   }, [content.boxes, cartSession?.activeBoxId]);
 
-  const items = useMemo(() => {
+  const pieceItems = useMemo(() => {
     if (!cartSession) return [];
-    const source = mode === "pieces"
-      ? cartSession.quantities
-      : (cartSession.boxItems || []).reduce<Record<string, number>>((result, id) => {
-          result[id] = (result[id] ?? 0) + 1;
-          return result;
-        }, {});
-
-    return Object.entries(source)
+    return Object.entries(cartSession.quantities)
       .filter(([, quantity]) => quantity > 0)
       .map(([id, quantity]) => {
         const product = content.products.find((entry) => entry.id === id);
@@ -57,21 +52,54 @@ export default function CheckoutPage() {
           price: product ? product.price : null,
         };
       });
-  }, [mode, cartSession, content.products]);
+  }, [cartSession, content.products]);
+
+  const boxItems = useMemo(() => {
+    if (!cartSession) return [];
+    const source = (cartSession.boxItems || []).reduce<Record<string, number>>((result, id) => {
+      result[id] = (result[id] ?? 0) + 1;
+      return result;
+    }, {});
+    return Object.entries(source).map(([id, quantity]) => {
+      const product = content.products.find((entry) => entry.id === id);
+      return { id, name: product?.name || "صنف", image: product?.image || "/brand/crumble-logo.png", quantity, price: product?.price ?? null };
+    });
+  }, [cartSession, content.products]);
+
+  const items = [...pieceItems, ...boxItems];
 
   const totalPieces = items.reduce((total, item) => total + item.quantity, 0);
-  const hasUnknownPrice = items.some((item) => item.price === null);
-  const productsTotal = mode === "box"
-    ? activeBox?.price ?? 0
-    : hasUnknownPrice
-      ? null
-      : items.reduce((total, item) => total + (item.price ?? 0) * item.quantity, 0);
+  const piecesTotal = pieceItems.some((item) => item.price === null) ? null : pieceItems.reduce((total, item) => total + (item.price ?? 0) * item.quantity, 0);
+  const productsTotal = piecesTotal === null ? null : piecesTotal + (boxItems.length ? activeBox?.price ?? 0 : 0);
+  const boxComplete = !boxItems.length || boxItems.reduce((total, item) => total + item.quantity, 0) === activeBox?.capacity;
 
   const deliveryFee = selectedCityObj ? selectedCityObj.deliveryFee : 0;
   const estimatedTime = selectedCityObj ? selectedCityObj.estimatedTime : "اختر المدينة أولاً";
   const grandTotal = productsTotal !== null ? productsTotal + deliveryFee : null;
 
   const isCard1Valid = customer.name.trim().length >= 2 && customer.phone.replace(/\D/g, "").length >= 8 && Boolean(customer.city);
+
+  function updateCart(next: CartSession) {
+    setCartSession(next);
+    saveCartSession(next);
+  }
+
+  function removePiece(id: string) {
+    if (!cartSession) return;
+    const quantities = { ...cartSession.quantities };
+    delete quantities[id];
+    updateCart({ ...cartSession, quantities });
+  }
+
+  function removeBoxItem(id: string) {
+    if (!cartSession) return;
+    updateCart({ ...cartSession, boxItems: cartSession.boxItems.filter((itemId) => itemId !== id) });
+  }
+
+  function emptyCart() {
+    clearCartSession();
+    setCartSession(null);
+  }
 
   function validate() {
     const next: Partial<Customer> = {};
@@ -84,7 +112,7 @@ export default function CheckoutPage() {
 
   async function submitOrder(event: React.FormEvent) {
     event.preventDefault();
-    if (!validate() || status === "submitting") return;
+    if (!validate() || !boxComplete || status === "submitting") return;
     setStatus("submitting");
     setSubmitError("");
 
@@ -101,7 +129,9 @@ export default function CheckoutPage() {
             locationDescription: customer.locationDescription?.trim() || "",
           },
           items,
-          box: mode === "box" ? activeBox : undefined,
+          pieceItems,
+          boxItems,
+          box: boxItems.length ? activeBox : undefined,
           totalPieces,
           productsTotal,
           deliveryFee,
@@ -333,12 +363,13 @@ export default function CheckoutPage() {
               <fieldset className="checkout-card-body" disabled={!isCard1Valid}>
                   <div className="order-summary">
                     <div className="summary-heading">
-                      <div><span>نوع الطلب</span><b>{mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
-                      <strong dir="ltr">{mode === "box" ? activeBox?.name : `${totalPieces} قطع`}</strong>
+                      <div><span>نوع الطلب</span><b>{mode === "mixed" ? "قطع + بوكس" : mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
+                      <strong dir="ltr">{totalPieces} قطع</strong>
                     </div>
 
-                    <ul className="summary-items-list">
-                      {items.map((item) => (
+                    <div className="cart-summary-toolbar"><span>{items.length} أصناف</span><button type="button" onClick={emptyCart}>إفراغ السلة</button></div>
+                    {pieceItems.length > 0 && <><h3 className="cart-group-title">بالقطعة</h3><ul className="summary-items-list">
+                      {pieceItems.map((item) => (
                         <li key={item.id} className="summary-item-row">
                           <div className="summary-item-left">
                             <img src={item.image} alt={item.name} className="summary-item-thumb" />
@@ -347,14 +378,11 @@ export default function CheckoutPage() {
                               <span className="summary-item-qty">×{item.quantity}</span>
                             </div>
                           </div>
-                          <div className="summary-item-price" dir="ltr">
-                            {item.price !== null && item.price !== undefined
-                              ? `${item.price * item.quantity} ${content.store.currency}`
-                              : "يُحدد لاحقاً"}
-                          </div>
+                          <div className="summary-item-actions"><div className="summary-item-price" dir="ltr">{item.price !== null ? `${item.price * item.quantity} ${content.store.currency}` : "يُحدد لاحقاً"}</div><button type="button" className="cart-remove-item" onClick={() => removePiece(item.id)} aria-label={`حذف ${item.name}`}>×</button></div>
                         </li>
                       ))}
-                    </ul>
+                    </ul></>}
+                    {boxItems.length > 0 && <><h3 className="cart-group-title"><span>{activeBox?.name}</span><b dir="ltr">{activeBox?.price} {content.store.currency}</b></h3><ul className="summary-items-list">{boxItems.map((item) => <li key={`box-${item.id}`} className="summary-item-row"><div className="summary-item-left"><img src={item.image} alt={item.name} className="summary-item-thumb" /><div className="summary-item-details"><span className="summary-item-name">{item.name}</span><span className="summary-item-qty">×{item.quantity}</span></div></div><div className="summary-item-actions"><span className="summary-item-price">ضمن البوكس</span><button type="button" className="cart-remove-item" onClick={() => removeBoxItem(item.id)} aria-label={`حذف ${item.name} من البوكس`}>×</button></div></li>)}</ul>{!boxComplete && <p className="cart-box-warning">البوكس غير مكتمل. عد للمتجر لإضافة القطع الناقصة أو أفرغ البوكس.</p>}</>}
 
                     <div className="summary-breakdown">
                       <div className="summary-breakdown-row">
@@ -403,9 +431,11 @@ export default function CheckoutPage() {
             <button
               className="primary-action sheet-submit"
               type="submit"
-              disabled={!isCard1Valid || status === "submitting"}
+              disabled={!isCard1Valid || !boxComplete || status === "submitting"}
             >
-              {!isCard1Valid ? (
+              {!boxComplete ? (
+                "أكمل البوكس أولاً"
+              ) : !isCard1Valid ? (
                 "أكمل بيانات الاستلام أولاً"
               ) : status === "submitting" ? (
                 <><span className="spinner" /> جاري تأكيد وإرسال الطلب...</>

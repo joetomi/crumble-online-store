@@ -1,23 +1,25 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { BoxSize, Customer, OrderMode, Product, StoreContent } from "@/lib/types";
+import type { BoxSize, Customer, OrderMode, StoreContent } from "@/lib/types";
 import { normalizeCities } from "@/lib/types";
 import { saveCartSession } from "@/lib/cart-session";
 
 type OrderSheetProps = {
   content: StoreContent;
-  mode: OrderMode;
   quantities: Record<string, number>;
   boxItems: string[];
   box: BoxSize;
   onClose: () => void;
   onNewOrder: () => void;
+  onRemovePiece: (id: string) => void;
+  onRemoveBoxItem: (id: string) => void;
+  onClearCart: () => void;
 };
 
 const emptyCustomer: Customer = { name: "", phone: "", city: "", locationDescription: "" };
 
-export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, onNewOrder }: OrderSheetProps) {
+export function OrderSheet({ content, quantities, boxItems, box, onClose, onNewOrder, onRemovePiece, onRemoveBoxItem, onClearCart }: OrderSheetProps) {
   const [stepView, setStepView] = useState<"cart" | "checkout">("cart");
   const [customer, setCustomer] = useState(emptyCustomer);
   const [errors, setErrors] = useState<Partial<Customer>>({});
@@ -40,15 +42,8 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
   const citiesList = useMemo(() => normalizeCities(content.store.cities), [content.store.cities]);
   const selectedCityObj = useMemo(() => citiesList.find((c) => c.name === customer.city), [citiesList, customer.city]);
 
-  const items = useMemo(() => {
-    const source = mode === "pieces"
-      ? quantities
-      : boxItems.reduce<Record<string, number>>((result, id) => {
-          result[id] = (result[id] ?? 0) + 1;
-          return result;
-        }, {});
-
-    return Object.entries(source)
+  const toItems = (source: Record<string, number>) =>
+    Object.entries(source)
       .filter(([, quantity]) => quantity > 0)
       .map(([id, quantity]) => {
         const product = content.products.find((entry) => entry.id === id);
@@ -60,15 +55,20 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
           price: product ? product.price : null,
         };
       });
-  }, [mode, quantities, boxItems, content.products]);
+
+  const pieceItems = useMemo(() => toItems(quantities), [quantities, content.products]);
+  const boxSummaryItems = useMemo(() => toItems(boxItems.reduce<Record<string, number>>((result, id) => {
+    result[id] = (result[id] ?? 0) + 1;
+    return result;
+  }, {})), [boxItems, content.products]);
+  const mode: OrderMode = pieceItems.length && boxSummaryItems.length ? "mixed" : boxSummaryItems.length ? "box" : "pieces";
+  const items = [...pieceItems, ...boxSummaryItems];
 
   const totalPieces = items.reduce((total, item) => total + item.quantity, 0);
-  const hasUnknownPrice = items.some((item) => item.price === null);
-  const productsTotal = mode === "box"
-    ? box.price
-    : hasUnknownPrice
-      ? null
-      : items.reduce((total, item) => total + (item.price ?? 0) * item.quantity, 0);
+  const piecePricesKnown = pieceItems.every((item) => item.price !== null);
+  const piecesTotal = piecePricesKnown ? pieceItems.reduce((total, item) => total + (item.price ?? 0) * item.quantity, 0) : null;
+  const productsTotal = piecesTotal === null ? null : piecesTotal + (boxSummaryItems.length ? box.price : 0);
+  const boxComplete = boxItems.length === 0 || boxItems.length === box.capacity;
 
   const deliveryFee = selectedCityObj ? selectedCityObj.deliveryFee : 0;
   const estimatedTime = selectedCityObj ? selectedCityObj.estimatedTime : "اختر المدينة أولاً";
@@ -103,7 +103,9 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
             locationDescription: customer.locationDescription?.trim() || "",
           },
           items,
-          box: mode === "box" ? box : undefined,
+          pieceItems,
+          boxItems: boxSummaryItems,
+          box: boxSummaryItems.length ? box : undefined,
           totalPieces,
           productsTotal,
           deliveryFee,
@@ -195,12 +197,17 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
 
             <div className="order-summary">
               <div className="summary-heading">
-                <div><span>نوع الطلب</span><b>{mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
-                <strong dir="ltr">{mode === "box" ? box.name : `${totalPieces} قطع`}</strong>
+                <div><span>نوع الطلب</span><b>{mode === "mixed" ? "قطع + بوكس" : mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
+                <strong dir="ltr">{totalPieces} قطع</strong>
               </div>
 
-              <ul className="summary-items-list">
-                {items.map((item) => (
+              <div className="cart-summary-toolbar">
+                <span>{pieceItems.length + boxSummaryItems.length} أصناف</span>
+                <button type="button" onClick={onClearCart}>إفراغ السلة</button>
+              </div>
+
+              {pieceItems.length > 0 && <><h3 className="cart-group-title">بالقطعة</h3><ul className="summary-items-list">
+                {pieceItems.map((item) => (
                   <li key={item.id} className="summary-item-row">
                     <div className="summary-item-left">
                       <img src={item.image} alt={item.name} className="summary-item-thumb" />
@@ -209,20 +216,29 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
                         <span className="summary-item-qty">×{item.quantity}</span>
                       </div>
                     </div>
-                    <div className="summary-item-price" dir="ltr">
-                      {item.price !== null && item.price !== undefined
-                        ? `${item.price * item.quantity} ${content.store.currency}`
-                        : "يُحدد لاحقاً"}
+                    <div className="summary-item-actions">
+                      <div className="summary-item-price" dir="ltr">{item.price !== null ? `${item.price * item.quantity} ${content.store.currency}` : "يُحدد لاحقاً"}</div>
+                      <button type="button" className="cart-remove-item" onClick={() => onRemovePiece(item.id)} aria-label={`حذف ${item.name} من السلة`}>×</button>
                     </div>
                   </li>
                 ))}
-              </ul>
+              </ul></>}
+
+              {boxSummaryItems.length > 0 && <><h3 className="cart-group-title"><span>{box.name}</span><b dir="ltr">{box.price} {content.store.currency}</b></h3><ul className="summary-items-list">
+                {boxSummaryItems.map((item) => (
+                  <li key={`box-${item.id}`} className="summary-item-row">
+                    <div className="summary-item-left"><img src={item.image} alt={item.name} className="summary-item-thumb" /><div className="summary-item-details"><span className="summary-item-name">{item.name}</span><span className="summary-item-qty">×{item.quantity}</span></div></div>
+                    <div className="summary-item-actions"><span className="summary-item-price">ضمن البوكس</span><button type="button" className="cart-remove-item" onClick={() => onRemoveBoxItem(item.id)} aria-label={`حذف ${item.name} من البوكس`}>×</button></div>
+                  </li>
+                ))}
+              </ul>{!boxComplete && <p className="cart-box-warning">أكمل البوكس: اختر {box.capacity - boxItems.length} قطع إضافية أو احذف البوكس.</p>}</>}
             </div>
 
             <button
               className="primary-action sheet-submit"
               type="button"
               onClick={() => {
+                if (!boxComplete) return;
                 saveCartSession({
                   mode,
                   quantities,
@@ -231,8 +247,9 @@ export function OrderSheet({ content, mode, quantities, boxItems, box, onClose, 
                 });
                 window.location.href = "/checkout";
               }}
+              disabled={!boxComplete || items.length === 0}
             >
-              مواصلة وإكمال الطلب ←
+              {!boxComplete ? "أكمل البوكس أولاً" : "مواصلة وإكمال الطلب ←"}
             </button>
           </div>
         ) : (
