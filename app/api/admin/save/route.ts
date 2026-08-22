@@ -1,14 +1,54 @@
 import { NextResponse } from "next/server";
 import { hasValidAdminSession } from "@/lib/admin-auth";
 import { validateContent } from "@/lib/store-content";
+import type { StoreContent } from "@/lib/types";
 
 type GithubFile = { sha?: string };
+type GithubHeaders = Record<string, string>;
 
 function encodeBase64(value: string) {
   const bytes = new TextEncoder().encode(value);
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary);
+}
+
+function safeFilePart(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "image";
+}
+
+async function persistDataImage(
+  image: string,
+  label: string,
+  repository: string,
+  branch: string,
+  headers: GithubHeaders,
+) {
+  const match = image.match(/^data:image\/(png|jpe?g|webp|gif);base64,(.+)$/i);
+  if (!match) return image;
+
+  const extension = match[1].toLowerCase().replace("jpeg", "jpg");
+  const content = match[2];
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(content));
+  const hash = Array.from(new Uint8Array(digest)).slice(0, 6).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  const publicPath = `/uploads/${safeFilePart(label)}-${hash}.${extension}`;
+  const endpoint = `https://api.github.com/repos/${repository}/contents/public${publicPath}`;
+  const existing = await fetch(`${endpoint}?ref=${encodeURIComponent(branch)}`, { headers, cache: "no-store" });
+
+  if (existing.ok) return publicPath;
+  if (existing.status !== 404) throw new Error(`GitHub image lookup failed: ${existing.status}`);
+
+  const upload = await fetch(endpoint, {
+    method: "PUT",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: `رفع صورة ${label} من لوحة التحكم`,
+      content,
+      branch,
+    }),
+  });
+  if (!upload.ok) throw new Error(`GitHub image upload failed: ${upload.status}`);
+  return publicPath;
 }
 
 export async function POST(request: Request) {
@@ -33,12 +73,20 @@ export async function POST(request: Request) {
     }
 
     const endpoint = `https://api.github.com/repos/${repository}/contents/${filePath}`;
-    const headers = {
+    const headers: GithubHeaders = {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
       "User-Agent": "crumble-store-admin",
     };
+    const content = structuredClone(body as StoreContent);
+
+    for (const product of content.products) {
+      product.image = await persistDataImage(product.image, `product-${product.id}`, repository, branch, headers);
+    }
+    for (const story of content.stories ?? []) {
+      story.image = await persistDataImage(story.image, `story-${story.id}`, repository, branch, headers);
+    }
     const currentResponse = await fetch(`${endpoint}?ref=${encodeURIComponent(branch)}`, {
       headers,
       cache: "no-store",
@@ -49,7 +97,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "تعذر قراءة ملف المتجر من GitHub." }, { status: 502 });
     }
 
-    const json = `${JSON.stringify(body, null, 2)}\n`;
+    const json = `${JSON.stringify(content, null, 2)}\n`;
     const updateResponse = await fetch(endpoint, {
       method: "PUT",
       headers: { ...headers, "Content-Type": "application/json" },
@@ -60,10 +108,11 @@ export async function POST(request: Request) {
         branch,
       }),
     });
-    const result = (await updateResponse.json().catch(() => ({}))) as { commit?: { sha?: string } };
+    const result = (await updateResponse.json().catch(() => ({}))) as { commit?: { sha?: string }; message?: string };
 
     if (!updateResponse.ok || !result.commit?.sha) {
-      return NextResponse.json({ success: false, error: "رفض GitHub التحديث. تحقق من صلاحية الربط." }, { status: 502 });
+      console.error("GitHub store update failed", updateResponse.status, result.message);
+      return NextResponse.json({ success: false, error: "تعذر حفظ ملف المتجر في GitHub. أعد المحاولة، وتأكد أن صلاحية الربط لم تنتهِ." }, { status: 502 });
     }
 
     return NextResponse.json({
@@ -71,6 +120,7 @@ export async function POST(request: Request) {
       message: "تم رفع التغييرات إلى GitHub، وبدأ Vercel إعادة إطلاق الموقع.",
       pushed: true,
       commit: result.commit.sha,
+      content,
     });
   } catch (error) {
     console.error("Admin publish failed", error);

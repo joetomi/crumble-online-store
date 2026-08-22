@@ -54,8 +54,12 @@ export function AdminDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(content),
       });
-      const data = (await res.json()) as { success?: boolean; message?: string; error?: string };
+      const data = (await res.json()) as { success?: boolean; message?: string; error?: string; content?: StoreContent };
       if (!res.ok || !data.success) throw new Error(data.error || "تعذر نشر التغييرات");
+      if (data.content) {
+        setContent(data.content);
+        writeLocalContent(data.content);
+      }
       setDirty(false);
       flash(data.message || "تم رفع التغييرات وبدأ تحديث الموقع.");
     } catch (saveError) {
