@@ -135,12 +135,10 @@ export function Storefront() {
 
         <div className="cr-mode-cards" role="tablist" aria-label="نوع الطلب">
           <button type="button" role="tab" aria-selected={mode === "pieces"} className={mode === "pieces" ? "is-active" : ""} onClick={() => selectMode("pieces")}>
-            <span className="cr-mode-icon" aria-hidden="true">1</span>
             <b>طلب بالقطعة</b>
             <small>اختر أي نكهة بالعدد</small>
           </button>
           <button type="button" role="tab" aria-selected={mode === "box"} className={mode === "box" ? "is-active" : ""} onClick={() => selectMode("box")}>
-            <span className="cr-mode-icon" aria-hidden="true">4</span>
             <b>بوكس Crumble</b>
             <small>رتّب البوكس على مزاجك</small>
           </button>
