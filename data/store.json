@@ -234,6 +234,18 @@
       "variant": "signature",
       "accent": "#aa7858",
       "cookieType": "crumble"
+    },
+    {
+      "id": "product-mt4a3ioq",
+      "name": "اكتب اسم الصنف هنا",
+      "description": "اكتب وصف الصنف والمكونات هنا",
+      "image": "/uploads/product-product-mt4a3ioq-6464e8827d7c.png",
+      "price": 12,
+      "available": true,
+      "category": "new",
+      "variant": "signature",
+      "accent": "#aa7858",
+      "cookieType": "crumble"
     }
   ]
 }
