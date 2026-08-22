@@ -87,17 +87,6 @@
       "captionEn": "Soft textured cookie with warm caramel drizzle.",
       "image": "/uploads/story-story-3-7e6aa6adf1c2.png",
       "enabled": true
-    },
-    {
-      "id": "story-5",
-      "title": "تشكيلة البوكس الفاخرة",
-      "titleAr": "تشكيلة البوكس الفاخرة",
-      "titleEn": "Luxury Cookie Box",
-      "caption": "مجموعة متنوعة من الكوكيز الشهي.",
-      "captionAr": "مجموعة متنوعة من الكوكيز الشهي.",
-      "captionEn": "A rich variety box of freshly baked treats.",
-      "image": "/stories/story-5.jpg",
-      "enabled": true
     }
   ],
   "boxes": [
