@@ -282,6 +282,18 @@
       "variant": "signature",
       "accent": "#aa7858",
       "cookieType": "crumble"
+    },
+    {
+      "id": "product-mt4a58ph",
+      "name": "اكتب اسم الصنف هنا",
+      "description": "اكتب وصف الصنف والمكونات هنا",
+      "image": "/uploads/product-product-mt4a58ph-01e8fd8636cb.png",
+      "price": 12,
+      "available": true,
+      "category": "new",
+      "variant": "signature",
+      "accent": "#aa7858",
+      "cookieType": "crumble"
     }
   ]
 }
