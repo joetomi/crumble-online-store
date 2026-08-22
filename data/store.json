@@ -10,7 +10,7 @@
   },
   "store": {
     "orderingEnabled": true,
-    "openingTime": "00:00",
+    "openingTime": "10:00",
     "closingTime": "23:59",
     "timezone": "Africa/Tripoli",
     "closedMessage": "الحجز متوقف حالياً",
@@ -18,34 +18,10 @@
     "currency": "د.ل",
     "cities": [
       {
-        "id": "city-tripoli",
-        "name": "طرابلس",
-        "deliveryFee": 10,
-        "estimatedTime": "خلال 24 ساعة"
-      },
-      {
-        "id": "city-benghazi",
-        "name": "بنغازي",
-        "deliveryFee": 20,
-        "estimatedTime": "خلال 48 ساعة"
-      },
-      {
         "id": "city-misrata",
         "name": "مصراتة",
-        "deliveryFee": 15,
-        "estimatedTime": "خلال 24-48 ساعة"
-      },
-      {
-        "id": "city-zawia",
-        "name": "الزاوية",
-        "deliveryFee": 12,
-        "estimatedTime": "خلال 24 ساعة"
-      },
-      {
-        "id": "city-khoms",
-        "name": "الخمس",
-        "deliveryFee": 15,
-        "estimatedTime": "خلال 24-48 ساعة"
+        "deliveryFee": 10,
+        "estimatedTime": "حجز يومي أو قبل"
       }
     ],
     "social": {
