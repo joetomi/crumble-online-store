@@ -116,6 +116,8 @@ export type Customer = {
   locationDescription?: string;
 };
 
+export type PaymentMethod = "cash" | "bank_transfer";
+
 export type OrderPayload = {
   mode: OrderMode;
   customer: Customer;
@@ -123,4 +125,5 @@ export type OrderPayload = {
   box?: { id: string; name: string; price: number; capacity: number };
   totalPieces: number;
   totalPrice: number | null;
+  paymentMethod: PaymentMethod;
 };

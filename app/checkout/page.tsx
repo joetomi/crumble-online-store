@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { defaultContent, readLocalContent } from "@/lib/store-content";
 import { loadCartSession, saveCartSession, clearCartSession } from "@/lib/cart-session";
-import type { Customer, StoreContent, CartSession } from "@/lib/types";
+import type { Customer, StoreContent, CartSession, PaymentMethod } from "@/lib/types";
 import { normalizeCities } from "@/lib/types";
 
 const emptyCustomer: Customer = { name: "", phone: "", city: "", locationDescription: "" };
@@ -18,7 +18,7 @@ export default function CheckoutPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [orderId, setOrderId] = useState("");
   const [submitError, setSubmitError] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"cash">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function CheckoutPage() {
           deliveryFee,
           estimatedTime,
           grandTotal,
-          paymentMethod: "كاش عند الاستلام",
+          paymentMethod,
         }),
       });
       const result = (await response.json()) as { orderId?: string; error?: string };
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
               )}
               <div className="summary-row">
                 <span>طريقة الدفع</span>
-                <strong>الدفع عند الاستلام (كاش)</strong>
+                <strong>{paymentMethod === "bank_transfer" ? "تحويل مصرفي" : "الدفع عند الاستلام (كاش)"}</strong>
               </div>
               <div className="summary-divider" />
               <div className="summary-row">
@@ -421,7 +421,26 @@ export default function CheckoutPage() {
                           <small>ادفع نقداً للمندوب عند وصول الطلب إليك</small>
                         </div>
                       </label>
+                      <label className={`payment-option-card ${paymentMethod === "bank_transfer" ? "is-selected" : ""}`}>
+                        <input
+                          type="radio"
+                          name="payment"
+                          value="bank_transfer"
+                          checked={paymentMethod === "bank_transfer"}
+                          onChange={() => setPaymentMethod("bank_transfer")}
+                        />
+                        <span className="payment-icon">تحويل</span>
+                        <div className="payment-text">
+                          <strong>تحويل مصرفي</strong>
+                          <small>سنرسل لك بيانات الحساب عبر واتساب</small>
+                        </div>
+                      </label>
                     </div>
+                    {paymentMethod === "bank_transfer" && (
+                      <div className="bank-transfer-note" role="note">
+                        سيتم التواصل معك على واتساب لإرسال بيانات الحساب وإكمال عملية الدفع.
+                      </div>
+                    )}
                   </div>
               </fieldset>
             </article>

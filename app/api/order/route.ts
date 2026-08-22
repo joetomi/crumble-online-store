@@ -1,6 +1,6 @@
 import { defaultContent } from "@/lib/store-content";
 import { getStoreStatus } from "@/lib/store-status";
-import type { Customer, OrderMode } from "@/lib/types";
+import type { Customer, OrderMode, PaymentMethod } from "@/lib/types";
 import { normalizeAllowedCookieTypes, normalizeCities, normalizeCookieType } from "@/lib/types";
 
 type IncomingOrder = {
@@ -10,6 +10,7 @@ type IncomingOrder = {
   pieceItems?: Array<{ id?: string; quantity?: number }>;
   boxItems?: Array<{ id?: string; quantity?: number }>;
   box?: { id?: string };
+  paymentMethod?: PaymentMethod;
 };
 
 function escapeHtml(value: string) {
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
     const phone = data.customer?.phone?.trim() ?? "";
     const city = data.customer?.city?.trim() ?? "";
     const locationDescription = (data.customer?.locationDescription ?? "").trim().slice(0, 300);
+    const paymentMethod: PaymentMethod = data.paymentMethod === "bank_transfer" ? "bank_transfer" : "cash";
 
     if (!data.mode || !name || phone.replace(/\D/g, "").length < 8 || !city) {
       return Response.json({ error: "invalid_order" }, { status: 400 });
@@ -102,8 +104,10 @@ export async function POST(request: Request) {
     const selectedCity = validCities.find((entry) => entry.name === city)!;
     const grandTotal = productsTotal === null ? null : productsTotal + selectedCity.deliveryFee;
 
+    const isBankTransfer = paymentMethod === "bank_transfer";
     const text = [
-      "🍪 <b>طلب جديد | CRUMBLE</b>",
+      isBankTransfer ? "🏦 <b>طلب تحويل مصرفي جديد | CRUMBLE</b>" : "🍪 <b>طلب جديد | CRUMBLE</b>",
+      ...(isBankTransfer ? ["", "⚠️ <b>هذا الزبون اختار التحويل المصرفي</b>", "يرجى التواصل معه عبر واتساب لإرسال بيانات الحساب وإكمال الدفع."] : []),
       "",
       "━━━━━━━━━━━━━━━━━━",
       "",
@@ -139,6 +143,8 @@ export async function POST(request: Request) {
       `التوصيل: <b>${selectedCity.deliveryFee} ${defaultContent.store.currency}</b>`,
       "",
       `<b>الإجمالي: ${grandTotal === null ? "يُحدد لاحقاً" : `${grandTotal} ${defaultContent.store.currency}`}</b>`,
+      "",
+      `<b>طريقة الدفع:</b> ${isBankTransfer ? "تحويل مصرفي — بانتظار التواصل عبر واتساب" : "نقداً عند الاستلام"}`,
       "",
       "━━━━━━━━━━━━━━━━━━",
       "",
