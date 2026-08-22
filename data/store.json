@@ -114,13 +114,24 @@
   "boxes": [
     {
       "id": "box-4",
-      "name": "Box 4",
+      "name": "كرامبل بوكس 4 قطع",
       "capacity": 4,
-      "price": 40,
+      "price": 35,
       "enabled": true,
-      "description": "أربع قطع من اختيارك داخل بوكس Crumble.",
+      "description": "تشكيلة من أربع قطع من الكرمبل كوكيز من اختيارك، بوزن 80جم للقطعة ونكهات مميزة.",
       "allowedCookieTypes": [
         "crumble"
+      ]
+    },
+    {
+      "id": "box-mt4afdwv",
+      "name": "كلاسيك بوكس 6 قطع",
+      "capacity": 6,
+      "price": 35,
+      "enabled": true,
+      "description": "تشكيلة من ست قطع من الكلاسيك كوكيز من اختيارك، بوزن 50جم، وتشكيلة تجمع العائلة",
+      "allowedCookieTypes": [
+        "classic"
       ]
     }
   ],
