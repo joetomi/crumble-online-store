@@ -76,8 +76,10 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
   };
 
   const touchStartX = useRef<number | null>(null);
+  const didSwipeRef = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    didSwipeRef.current = false;
     touchStartX.current = e.touches[0].clientX;
   };
 
@@ -87,6 +89,7 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
     touchStartX.current = null;
 
     if (Math.abs(deltaX) > 40) {
+      didSwipeRef.current = true;
       if (deltaX < 0) {
         // Swiped Left -> Advance to Next Story
         handleNext();
@@ -95,6 +98,15 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
         handlePrev();
       }
     }
+  };
+
+  const handleSideTap = (direction: "prev" | "next") => {
+    if (didSwipeRef.current) {
+      didSwipeRef.current = false;
+      return;
+    }
+    if (direction === "next") handleNext();
+    else handlePrev();
   };
 
   const titleText = currentItem.titleAr || currentItem.title || currentItem.titleEn || "";
@@ -160,27 +172,19 @@ export function StoriesCarousel({ stories }: StoriesCarouselProps) {
           })}
         </div>
 
-        {/* Visible Left / Right Navigation Controls */}
-        <div className="sc-nav-controls">
-          <button
-            type="button"
-            className="sc-arrow-btn sc-arrow-left"
-            onClick={handlePrev}
-            aria-label="المنشور السابق"
-            title="المنشور السابق"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            className="sc-arrow-btn sc-arrow-right"
-            onClick={handleNext}
-            aria-label="المنشور التالي"
-            title="المنشور التالي"
-          >
-            ›
-          </button>
-        </div>
+        {/* Instagram-style invisible tap zones: left is previous, right is next. */}
+        <button
+          type="button"
+          className="sc-tap-zone sc-tap-zone-left"
+          onClick={() => handleSideTap("prev")}
+          aria-label="المنشور السابق"
+        />
+        <button
+          type="button"
+          className="sc-tap-zone sc-tap-zone-right"
+          onClick={() => handleSideTap("next")}
+          aria-label="المنشور التالي"
+        />
 
         {/* Content Overlay (Bottom) */}
         <div className="sc-content-overlay" dir="rtl">
