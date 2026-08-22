@@ -225,87 +225,87 @@
     },
     {
       "id": "product-mt4a379n",
-      "name": "اكتب اسم الصنف هنا",
-      "description": "اكتب وصف الصنف والمكونات هنا",
+      "name": "كلاسيك",
+      "description": "وزن 50 جم، مع حشوة من حبوب الشوكولاتة بالحليب البلجيكية",
       "image": "/uploads/product-product-mt4a379n-cfe6254893e5.png",
-      "price": 12,
+      "price": 7,
       "available": true,
       "category": "new",
       "variant": "signature",
       "accent": "#aa7858",
-      "cookieType": "crumble"
+      "cookieType": "classic"
     },
     {
       "id": "product-mt4a3ioq",
-      "name": "اكتب اسم الصنف هنا",
-      "description": "اكتب وصف الصنف والمكونات هنا",
+      "name": "بستاشيو",
+      "description": "وزن 50 جم، مع حشوة من حبوب الشوكولاتة بالحليب البلجيكية",
       "image": "/uploads/product-product-mt4a3ioq-6464e8827d7c.png",
-      "price": 12,
+      "price": 7,
       "available": true,
       "category": "new",
       "variant": "signature",
       "accent": "#aa7858",
-      "cookieType": "crumble"
+      "cookieType": "classic"
     },
     {
       "id": "product-mt4a42qd",
-      "name": "اكتب اسم الصنف هنا",
-      "description": "اكتب وصف الصنف والمكونات هنا",
+      "name": "ريد فيلفيت",
+      "description": "وزن 50 جم، مع حشوة من حبوب الشوكولاتة البيضاء البلجيكية، وكريم الريد فيلفيت",
       "image": "/uploads/product-product-mt4a42qd-a4422017e564.png",
-      "price": 12,
+      "price": 7,
       "available": true,
       "category": "new",
       "variant": "signature",
       "accent": "#aa7858",
-      "cookieType": "crumble"
+      "cookieType": "classic"
     },
     {
       "id": "product-mt4a4qm6",
-      "name": "اكتب اسم الصنف هنا",
-      "description": "اكتب وصف الصنف والمكونات هنا",
+      "name": "لوتس",
+      "description": "وزن 50 جم، مع حشوة من حبوب الشوكولاتة البيضاء البلجيكية، وبسكوت اللوتس وزبدة اللوتس",
       "image": "/uploads/product-product-mt4a4qm6-927efd8044a9.png",
-      "price": 12,
+      "price": 7,
       "available": true,
       "category": "new",
       "variant": "signature",
       "accent": "#aa7858",
-      "cookieType": "crumble"
+      "cookieType": "classic"
     },
     {
       "id": "product-mt4a4zr8",
-      "name": "اكتب اسم الصنف هنا",
-      "description": "اكتب وصف الصنف والمكونات هنا",
+      "name": "بلو فيلفيت",
+      "description": "وزن 50 جم، مع حشوة من حبوب الشوكولاتة البيضاء البلجيكية، وكريم البلو فيلفيت",
       "image": "/uploads/product-product-mt4a4zr8-e64ac9f80cc9.png",
-      "price": 12,
+      "price": 7,
       "available": true,
       "category": "new",
       "variant": "signature",
       "accent": "#aa7858",
-      "cookieType": "crumble"
+      "cookieType": "classic"
     },
     {
       "id": "product-mt4a58ph",
-      "name": "اكتب اسم الصنف هنا",
-      "description": "اكتب وصف الصنف والمكونات هنا",
+      "name": "دبل شوكليت",
+      "description": "وزن 50 جم، مع حشوة من حبوب الشوكولاتة الداكنة البلجيكية، والكاكاو",
       "image": "/uploads/product-product-mt4a58ph-01e8fd8636cb.png",
-      "price": 12,
+      "price": 7,
       "available": true,
       "category": "new",
       "variant": "signature",
       "accent": "#aa7858",
-      "cookieType": "crumble"
+      "cookieType": "classic"
     },
     {
       "id": "product-mt4a5isr",
-      "name": "اكتب اسم الصنف هنا",
-      "description": "اكتب وصف الصنف والمكونات هنا",
+      "name": "ميني كوكيز 10 قطع",
+      "description": "10 قطع كلاسيك كوكيز بطعم الشوكولاتة البلجيكية، مع حافظة من الشوكولاتة للإستمتاع بالتجربة.",
       "image": "/uploads/product-product-mt4a5isr-7a864d11408e.png",
-      "price": 12,
+      "price": 18,
       "available": true,
       "category": "new",
       "variant": "signature",
       "accent": "#aa7858",
-      "cookieType": "crumble"
+      "cookieType": "mini"
     }
   ]
 }
