@@ -120,8 +120,6 @@
       "enabled": true,
       "description": "أربع قطع من اختيارك داخل بوكس Crumble.",
       "allowedCookieTypes": [
-        "mini",
-        "classic",
         "crumble"
       ]
     }
@@ -173,7 +171,7 @@
       "category": "special",
       "variant": "signature",
       "accent": "#74503b",
-      "cookieType": "classic"
+      "cookieType": "crumble"
     },
     {
       "id": "cinnabon",
@@ -185,7 +183,7 @@
       "category": "special",
       "variant": "signature",
       "accent": "#c18b54",
-      "cookieType": "classic"
+      "cookieType": "crumble"
     },
     {
       "id": "crumble-pistachio",
