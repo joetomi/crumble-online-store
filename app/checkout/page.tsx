@@ -32,11 +32,8 @@ export default function CheckoutPage() {
   const selectedCityObj = useMemo(() => citiesList.find((c) => c.name === customer.city), [citiesList, customer.city]);
 
   const hasPieces = Boolean(cartSession && Object.values(cartSession.quantities).some((quantity) => quantity > 0));
-  const hasBox = Boolean(cartSession?.boxItems?.length);
+  const hasBox = Boolean(cartSession?.boxes?.length);
   const mode = hasPieces && hasBox ? "mixed" : hasBox ? "box" : "pieces";
-  const activeBox = useMemo(() => {
-    return content.boxes.find((b) => b.id === cartSession?.activeBoxId) || content.boxes[0];
-  }, [content.boxes, cartSession?.activeBoxId]);
 
   const pieceItems = useMemo(() => {
     if (!cartSession) return [];
@@ -54,24 +51,28 @@ export default function CheckoutPage() {
       });
   }, [cartSession, content.products]);
 
-  const boxItems = useMemo(() => {
+  const boxGroups = useMemo(() => {
     if (!cartSession) return [];
-    const source = (cartSession.boxItems || []).reduce<Record<string, number>>((result, id) => {
-      result[id] = (result[id] ?? 0) + 1;
-      return result;
-    }, {});
-    return Object.entries(source).map(([id, quantity]) => {
-      const product = content.products.find((entry) => entry.id === id);
-      return { id, name: product?.name || "صنف", image: product?.image || "/brand/crumble-logo.png", quantity, price: product?.price ?? null };
-    });
-  }, [cartSession, content.products]);
+    return (cartSession.boxes ?? []).map((cartBox) => {
+      const box = content.boxes.find((entry) => entry.id === cartBox.boxId);
+      const source = cartBox.items.reduce<Record<string, number>>((result, id) => {
+        result[id] = (result[id] ?? 0) + 1;
+        return result;
+      }, {});
+      const items = Object.entries(source).map(([id, quantity]) => {
+        const product = content.products.find((entry) => entry.id === id);
+        return { id, name: product?.name || "صنف", image: product?.image || "/brand/crumble-logo.png", quantity, price: product?.price ?? null };
+      });
+      return { cartBox, box, items };
+    }).filter((group) => group.box);
+  }, [cartSession, content.boxes, content.products]);
 
+  const boxItems = boxGroups.flatMap((group) => group.items);
   const items = [...pieceItems, ...boxItems];
 
   const totalPieces = items.reduce((total, item) => total + item.quantity, 0);
   const piecesTotal = pieceItems.some((item) => item.price === null) ? null : pieceItems.reduce((total, item) => total + (item.price ?? 0) * item.quantity, 0);
-  const productsTotal = piecesTotal === null ? null : piecesTotal + (boxItems.length ? activeBox?.price ?? 0 : 0);
-  const boxComplete = !boxItems.length || boxItems.reduce((total, item) => total + item.quantity, 0) === activeBox?.capacity;
+  const productsTotal = piecesTotal === null ? null : piecesTotal + boxGroups.reduce((total, group) => total + (group.box?.price ?? 0), 0);
 
   const deliveryFee = selectedCityObj ? selectedCityObj.deliveryFee : 0;
   const estimatedTime = selectedCityObj ? selectedCityObj.estimatedTime : "اختر المدينة أولاً";
@@ -91,9 +92,9 @@ export default function CheckoutPage() {
     updateCart({ ...cartSession, quantities });
   }
 
-  function removeBoxItem(id: string) {
+  function removeBox(id: string) {
     if (!cartSession) return;
-    updateCart({ ...cartSession, boxItems: cartSession.boxItems.filter((itemId) => itemId !== id) });
+    updateCart({ ...cartSession, boxes: (cartSession.boxes ?? []).filter((box) => box.id !== id) });
   }
 
   function emptyCart() {
@@ -112,7 +113,7 @@ export default function CheckoutPage() {
 
   async function submitOrder(event: React.FormEvent) {
     event.preventDefault();
-    if (!validate() || !boxComplete || status === "submitting") return;
+    if (!validate() || status === "submitting") return;
     setStatus("submitting");
     setSubmitError("");
 
@@ -130,8 +131,7 @@ export default function CheckoutPage() {
           },
           items,
           pieceItems,
-          boxItems,
-          box: boxItems.length ? activeBox : undefined,
+          boxes: boxGroups.map((group) => ({ id: group.box!.id, items: group.items })),
           totalPieces,
           productsTotal,
           deliveryFee,
@@ -363,11 +363,11 @@ export default function CheckoutPage() {
               <fieldset className="checkout-card-body" disabled={!isCard1Valid}>
                   <div className="order-summary">
                     <div className="summary-heading">
-                      <div><span>نوع الطلب</span><b>{mode === "mixed" ? "قطع + بوكس" : mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
+                      <div><span>نوع الطلب</span><b>{mode === "mixed" ? "قطع + بوكسات" : mode === "box" ? "بالبوكسات" : "بالقطعة"}</b></div>
                       <strong dir="ltr">{totalPieces} قطع</strong>
                     </div>
 
-                    <div className="cart-summary-toolbar"><span>{items.length} أصناف</span><button type="button" onClick={emptyCart}>إفراغ السلة</button></div>
+                    <div className="cart-summary-toolbar"><span>{pieceItems.length + boxGroups.length} عناصر</span><button type="button" onClick={emptyCart}>إفراغ السلة</button></div>
                     {pieceItems.length > 0 && <><h3 className="cart-group-title">بالقطعة</h3><ul className="summary-items-list">
                       {pieceItems.map((item) => (
                         <li key={item.id} className="summary-item-row">
@@ -382,7 +382,10 @@ export default function CheckoutPage() {
                         </li>
                       ))}
                     </ul></>}
-                    {boxItems.length > 0 && <><h3 className="cart-group-title"><span>{activeBox?.name}</span><b dir="ltr">{activeBox?.price} {content.store.currency}</b></h3><ul className="summary-items-list">{boxItems.map((item) => <li key={`box-${item.id}`} className="summary-item-row"><div className="summary-item-left"><img src={item.image} alt={item.name} className="summary-item-thumb" /><div className="summary-item-details"><span className="summary-item-name">{item.name}</span><span className="summary-item-qty">×{item.quantity}</span></div></div><div className="summary-item-actions"><span className="summary-item-price">ضمن البوكس</span><button type="button" className="cart-remove-item" onClick={() => removeBoxItem(item.id)} aria-label={`حذف ${item.name} من البوكس`}>×</button></div></li>)}</ul>{!boxComplete && <p className="cart-box-warning">البوكس غير مكتمل. عد للمتجر لإضافة القطع الناقصة أو أفرغ البوكس.</p>}</>}
+                    {boxGroups.map((group, index) => <section className="cart-box-group" key={group.cartBox.id}>
+                      <h3 className="cart-group-title"><span>{group.box!.name} <small>#{index + 1}</small></span><b dir="ltr">{group.box!.price} {content.store.currency}</b><button type="button" className="cart-remove-item" onClick={() => removeBox(group.cartBox.id)} aria-label={`حذف ${group.box!.name}`}>×</button></h3>
+                      <ul className="summary-items-list">{group.items.map((item) => <li key={`${group.cartBox.id}-${item.id}`} className="summary-item-row"><div className="summary-item-left"><img src={item.image} alt={item.name} className="summary-item-thumb" /><div className="summary-item-details"><span className="summary-item-name">{item.name}</span><span className="summary-item-qty">×{item.quantity}</span></div></div><span className="summary-item-price">ضمن البوكس</span></li>)}</ul>
+                    </section>)}
 
                     <div className="summary-breakdown">
                       <div className="summary-breakdown-row">
@@ -450,11 +453,9 @@ export default function CheckoutPage() {
             <button
               className="primary-action sheet-submit"
               type="submit"
-              disabled={!isCard1Valid || !boxComplete || status === "submitting"}
+              disabled={!isCard1Valid || status === "submitting"}
             >
-              {!boxComplete ? (
-                "أكمل البوكس أولاً"
-              ) : !isCard1Valid ? (
+              {!isCard1Valid ? (
                 "أكمل بيانات الاستلام أولاً"
               ) : status === "submitting" ? (
                 <><span className="spinner" /> جاري تأكيد وإرسال الطلب...</>

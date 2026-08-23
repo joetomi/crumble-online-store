@@ -1,25 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { BoxSize, Customer, OrderMode, PaymentMethod, StoreContent } from "@/lib/types";
+import type { CartBox, Customer, OrderMode, PaymentMethod, StoreContent } from "@/lib/types";
 import { normalizeCities } from "@/lib/types";
 import { saveCartSession } from "@/lib/cart-session";
 
 type OrderSheetProps = {
   content: StoreContent;
   quantities: Record<string, number>;
-  boxItems: string[];
-  box: BoxSize;
+  boxes: CartBox[];
   onClose: () => void;
   onNewOrder: () => void;
   onRemovePiece: (id: string) => void;
-  onRemoveBoxItem: (id: string) => void;
+  onRemoveBox: (id: string) => void;
   onClearCart: () => void;
 };
 
 const emptyCustomer: Customer = { name: "", phone: "", city: "", locationDescription: "" };
 
-export function OrderSheet({ content, quantities, boxItems, box, onClose, onNewOrder, onRemovePiece, onRemoveBoxItem, onClearCart }: OrderSheetProps) {
+export function OrderSheet({ content, quantities, boxes, onClose, onNewOrder, onRemovePiece, onRemoveBox, onClearCart }: OrderSheetProps) {
   const [stepView, setStepView] = useState<"cart" | "checkout">("cart");
   const [customer, setCustomer] = useState(emptyCustomer);
   const [errors, setErrors] = useState<Partial<Customer>>({});
@@ -57,18 +56,22 @@ export function OrderSheet({ content, quantities, boxItems, box, onClose, onNewO
       });
 
   const pieceItems = useMemo(() => toItems(quantities), [quantities, content.products]);
-  const boxSummaryItems = useMemo(() => toItems(boxItems.reduce<Record<string, number>>((result, id) => {
-    result[id] = (result[id] ?? 0) + 1;
-    return result;
-  }, {})), [boxItems, content.products]);
-  const mode: OrderMode = pieceItems.length && boxSummaryItems.length ? "mixed" : boxSummaryItems.length ? "box" : "pieces";
+  const boxGroups = useMemo(() => boxes.map((cartBox) => {
+    const box = content.boxes.find((entry) => entry.id === cartBox.boxId);
+    const counts = cartBox.items.reduce<Record<string, number>>((result, id) => {
+      result[id] = (result[id] ?? 0) + 1;
+      return result;
+    }, {});
+    return { cartBox, box, items: toItems(counts) };
+  }).filter((group) => group.box), [boxes, content.boxes, content.products]);
+  const boxSummaryItems = boxGroups.flatMap((group) => group.items);
+  const mode: OrderMode = pieceItems.length && boxGroups.length ? "mixed" : boxGroups.length ? "box" : "pieces";
   const items = [...pieceItems, ...boxSummaryItems];
 
   const totalPieces = items.reduce((total, item) => total + item.quantity, 0);
   const piecePricesKnown = pieceItems.every((item) => item.price !== null);
   const piecesTotal = piecePricesKnown ? pieceItems.reduce((total, item) => total + (item.price ?? 0) * item.quantity, 0) : null;
-  const productsTotal = piecesTotal === null ? null : piecesTotal + (boxSummaryItems.length ? box.price : 0);
-  const boxComplete = boxItems.length === 0 || boxItems.length === box.capacity;
+  const productsTotal = piecesTotal === null ? null : piecesTotal + boxGroups.reduce((total, group) => total + (group.box?.price ?? 0), 0);
 
   const deliveryFee = selectedCityObj ? selectedCityObj.deliveryFee : 0;
   const estimatedTime = selectedCityObj ? selectedCityObj.estimatedTime : "اختر المدينة أولاً";
@@ -104,8 +107,7 @@ export function OrderSheet({ content, quantities, boxItems, box, onClose, onNewO
           },
           items,
           pieceItems,
-          boxItems: boxSummaryItems,
-          box: boxSummaryItems.length ? box : undefined,
+          boxes: boxGroups.map((group) => ({ id: group.box!.id, items: group.items })),
           totalPieces,
           productsTotal,
           deliveryFee,
@@ -202,7 +204,7 @@ export function OrderSheet({ content, quantities, boxItems, box, onClose, onNewO
               </div>
 
               <div className="cart-summary-toolbar">
-                <span>{pieceItems.length + boxSummaryItems.length} أصناف</span>
+                <span>{pieceItems.length + boxGroups.length} عناصر</span>
                 <button type="button" onClick={onClearCart}>إفراغ السلة</button>
               </div>
 
@@ -224,32 +226,26 @@ export function OrderSheet({ content, quantities, boxItems, box, onClose, onNewO
                 ))}
               </ul></>}
 
-              {boxSummaryItems.length > 0 && <><h3 className="cart-group-title"><span>{box.name}</span><b dir="ltr">{box.price} {content.store.currency}</b></h3><ul className="summary-items-list">
-                {boxSummaryItems.map((item) => (
-                  <li key={`box-${item.id}`} className="summary-item-row">
-                    <div className="summary-item-left"><img src={item.image} alt={item.name} className="summary-item-thumb" /><div className="summary-item-details"><span className="summary-item-name">{item.name}</span><span className="summary-item-qty">×{item.quantity}</span></div></div>
-                    <div className="summary-item-actions"><span className="summary-item-price">ضمن البوكس</span><button type="button" className="cart-remove-item" onClick={() => onRemoveBoxItem(item.id)} aria-label={`حذف ${item.name} من البوكس`}>×</button></div>
-                  </li>
-                ))}
-              </ul>{!boxComplete && <p className="cart-box-warning">أكمل البوكس: اختر {box.capacity - boxItems.length} قطع إضافية أو احذف البوكس.</p>}</>}
+              {boxGroups.map((group, index) => <section className="cart-box-group" key={group.cartBox.id}>
+                <h3 className="cart-group-title"><span>{group.box!.name} <small>#{index + 1}</small></span><b dir="ltr">{group.box!.price} {content.store.currency}</b><button type="button" className="cart-remove-item" onClick={() => onRemoveBox(group.cartBox.id)} aria-label={`حذف ${group.box!.name}`}>×</button></h3>
+                <ul className="summary-items-list">{group.items.map((item) => <li key={`${group.cartBox.id}-${item.id}`} className="summary-item-row"><div className="summary-item-left"><img src={item.image} alt={item.name} className="summary-item-thumb" /><div className="summary-item-details"><span className="summary-item-name">{item.name}</span><span className="summary-item-qty">×{item.quantity}</span></div></div><span className="summary-item-price">ضمن البوكس</span></li>)}</ul>
+              </section>)}
             </div>
 
             <button
               className="primary-action sheet-submit"
               type="button"
               onClick={() => {
-                if (!boxComplete) return;
                 saveCartSession({
                   mode,
                   quantities,
-                  boxItems,
-                  activeBoxId: box.id,
+                  boxes,
                 });
                 window.location.href = "/checkout";
               }}
-              disabled={!boxComplete || items.length === 0}
+              disabled={items.length === 0}
             >
-              {!boxComplete ? "أكمل البوكس أولاً" : "مواصلة وإكمال الطلب ←"}
+              مواصلة وإكمال الطلب ←
             </button>
           </div>
         ) : (
@@ -362,8 +358,8 @@ export function OrderSheet({ content, quantities, boxItems, box, onClose, onNewO
                 <>
                   <div className="order-summary">
                     <div className="summary-heading">
-                      <div><span>نوع الطلب</span><b>{mode === "box" ? "بالبوكس" : "بالقطعة"}</b></div>
-                      <strong dir="ltr">{mode === "box" ? box.name : `${totalPieces} قطع`}</strong>
+                      <div><span>نوع الطلب</span><b>{mode === "mixed" ? "قطع + بوكسات" : mode === "box" ? "بالبوكسات" : "بالقطعة"}</b></div>
+                      <strong dir="ltr">{boxGroups.length ? `${boxGroups.length} بوكس` : `${totalPieces} قطع`}</strong>
                     </div>
 
                     <ul className="summary-items-list">

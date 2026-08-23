@@ -14,9 +14,10 @@ type BoxBuilderProps = {
   onBoxChange: (id: string) => void;
   onConfirm: () => void;
   canOrder: boolean;
+  confirmLabel?: string;
 };
 
-export function BoxBuilder({ content, box, items, onChange, onBoxChange, onConfirm, canOrder }: BoxBuilderProps) {
+export function BoxBuilder({ content, box, items, onChange, onBoxChange, onConfirm, canOrder, confirmLabel = "إضافة للسلة" }: BoxBuilderProps) {
   const allowedCookieTypes = normalizeAllowedCookieTypes(box.allowedCookieTypes);
   const products = content.products.filter(
     (product) => product.available && allowedCookieTypes.includes(normalizeCookieType(product.cookieType)),
@@ -85,7 +86,7 @@ export function BoxBuilder({ content, box, items, onChange, onBoxChange, onConfi
         <div className="cr-box-buttons">
           {items.length > 0 && <button type="button" onClick={() => onChange([])}>إفراغ</button>}
           <button type="button" className="cr-box-confirm" disabled={!isFull || !canOrder} onClick={onConfirm}>
-            {isFull ? "مراجعة الطلب" : "أكمل اختيارك"}
+            {isFull ? confirmLabel : "أكمل اختيارك"}
           </button>
         </div>
       </section>

@@ -4,7 +4,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { defaultContent, readLocalContent } from "@/lib/store-content";
 import { getStoreStatus } from "@/lib/store-status";
-import type { OrderMode, Product, StoreContent } from "@/lib/types";
+import type { CartBox, OrderMode, Product, StoreContent } from "@/lib/types";
+import { clearCartSession, loadCartSession, saveCartSession } from "@/lib/cart-session";
 import { BoxBuilder } from "./box-builder";
 import { OrderSheet } from "./order-sheet";
 import { ProductGrid } from "./product-grid";
@@ -14,14 +15,25 @@ export function Storefront() {
   const [content, setContent] = useState<StoreContent>(defaultContent);
   const [mode, setMode] = useState<Exclude<OrderMode, "mixed">>("pieces");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [boxes, setBoxes] = useState<CartBox[]>([]);
   const [boxItems, setBoxItems] = useState<string[]>([]);
   const [activeBoxId, setActiveBoxId] = useState(defaultContent.boxes.find((box) => box.enabled)?.id ?? "");
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false);
+  const [pendingBoxId, setPendingBoxId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [cartLoaded, setCartLoaded] = useState(false);
   const [, setClock] = useState(0);
 
   useEffect(() => {
     const sync = () => setContent(readLocalContent());
     sync();
+    const savedCart = loadCartSession();
+    if (savedCart) {
+      setQuantities(savedCart.quantities);
+      setBoxes(savedCart.boxes ?? []);
+    }
+    setCartLoaded(true);
     window.addEventListener("storage", sync);
     window.addEventListener("crumble-content-updated", sync);
     const timer = window.setInterval(() => setClock((value) => value + 1), 60_000);
@@ -31,6 +43,27 @@ export function Storefront() {
       window.clearInterval(timer);
     };
   }, []);
+
+  useEffect(() => {
+    if (!cartLoaded) return;
+    const hasPieces = Object.values(quantities).some((quantity) => quantity > 0);
+    if (!hasPieces && boxes.length === 0) {
+      clearCartSession();
+      return;
+    }
+    saveCartSession({
+      mode: hasPieces && boxes.length ? "mixed" : boxes.length ? "box" : "pieces",
+      quantities,
+      boxes,
+    });
+  }, [cartLoaded, quantities, boxes]);
+
+  useEffect(() => {
+    if (!builderOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [builderOpen]);
 
   const products = useMemo(() => content.products.filter((product) => product.available), [content.products]);
   const stories = content.stories?.filter((story) => story.enabled) ?? [];
@@ -61,17 +94,65 @@ export function Storefront() {
   }
 
   function switchBox(id: string) {
+    if (id === activeBox?.id) return;
+    if (boxItems.length > 0) {
+      setPendingBoxId(id);
+      setDiscardConfirmOpen(true);
+      return;
+    }
     setActiveBoxId(id);
-    setBoxItems([]);
   }
 
   function selectMode(nextMode: Exclude<OrderMode, "mixed">) {
     setMode(nextMode);
+    if (nextMode === "box") setBuilderOpen(true);
     document.querySelector("#flavours")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function openBuilder() {
+    setBoxItems([]);
+    setBuilderOpen(true);
+  }
+
+  function closeBuilder() {
+    setBuilderOpen(false);
+    setDiscardConfirmOpen(false);
+    setPendingBoxId(null);
+    setBoxItems([]);
+  }
+
+  function attemptCloseBuilder() {
+    if (boxItems.length > 0) {
+      setPendingBoxId(null);
+      setDiscardConfirmOpen(true);
+      return;
+    }
+    closeBuilder();
+  }
+
+  function discardDraft() {
+    if (pendingBoxId) {
+      setActiveBoxId(pendingBoxId);
+      setPendingBoxId(null);
+      setDiscardConfirmOpen(false);
+      setBoxItems([]);
+      return;
+    }
+    closeBuilder();
+  }
+
+  function addBoxToCart() {
+    if (!activeBox || boxItems.length !== activeBox.capacity) return;
+    const id = typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `box-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setBoxes((current) => [...current, { id, boxId: activeBox.id, items: [...boxItems] }]);
+    closeBuilder();
   }
 
   function newOrder() {
     setQuantities({});
+    setBoxes([]);
     setBoxItems([]);
     setSheetOpen(false);
   }
@@ -84,12 +165,13 @@ export function Storefront() {
     });
   }
 
-  function removeCartBoxItem(id: string) {
-    setBoxItems((current) => current.filter((itemId) => itemId !== id));
+  function removeCartBox(id: string) {
+    setBoxes((current) => current.filter((box) => box.id !== id));
   }
 
   function clearCart() {
     setQuantities({});
+    setBoxes([]);
     setBoxItems([]);
     setSheetOpen(false);
   }
@@ -163,7 +245,11 @@ export function Storefront() {
               )}
             </>
           ) : activeBox ? (
-            <BoxBuilder content={content} box={activeBox} items={boxItems} onChange={setBoxItems} onBoxChange={switchBox} onConfirm={() => setSheetOpen(true)} canOrder={storeStatus.isOpen} />
+            <div className="cr-box-launcher">
+              <span>كوّن بوكسك بشكل منفصل ثم أضفه للسلة</span>
+              <b>{boxes.length ? `${boxes.length} بوكس في السلة` : "اختر الحجم والنكهات على مزاجك"}</b>
+              <button type="button" disabled={!storeStatus.isOpen} onClick={openBuilder}>تكوين بوكس جديد</button>
+            </div>
           ) : (
             <p className="cr-empty">لا يوجد بوكس متاح حالياً.</p>
           )}
@@ -176,7 +262,7 @@ export function Storefront() {
       </footer>
 
       {/* Floating Cart Button at Bottom Left */}
-      {(pieceCount > 0 || boxItems.length > 0) && (
+      {(pieceCount > 0 || boxes.length > 0) && (
         <button
           type="button"
           className="cr-fab-cart"
@@ -189,20 +275,38 @@ export function Storefront() {
             <circle cx="20" cy="21" r="1" />
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
-          <span className="cr-fab-badge">{pieceCount + boxItems.length}</span>
+          <span className="cr-fab-badge">{pieceCount + boxes.length}</span>
         </button>
       )}
 
-      {sheetOpen && activeBox && (
+      {builderOpen && activeBox && (
+        <div className="box-builder-backdrop" role="presentation" onClick={(event) => event.target === event.currentTarget && attemptCloseBuilder()}>
+          <section className="box-builder-modal" role="dialog" aria-modal="true" aria-labelledby="box-builder-title">
+            <div className="box-builder-modal-head">
+              <div><span>تكوين بوكس</span><h2 id="box-builder-title">اختياراتك في بوكس مستقل</h2></div>
+              <button type="button" onClick={attemptCloseBuilder} aria-label="إغلاق تكوين البوكس">×</button>
+            </div>
+            <BoxBuilder content={content} box={activeBox} items={boxItems} onChange={setBoxItems} onBoxChange={switchBox} onConfirm={addBoxToCart} canOrder={storeStatus.isOpen} confirmLabel="إضافة البوكس للسلة" />
+          </section>
+          {discardConfirmOpen && (
+            <div className="box-discard-dialog" role="alertdialog" aria-modal="true" aria-labelledby="discard-box-title">
+              <h3 id="discard-box-title">{pendingBoxId ? "تغيير حجم البوكس؟" : boxItems.length === activeBox.capacity ? "البوكس لم يُضف للسلة" : "البوكس لم يكتمل"}</h3>
+              <p>{pendingBoxId ? "سيتم حذف اختيارات هذا البوكس عند تغيير حجمه." : "هل تريد الخروج؟ سيتم حذف اختيارات هذا البوكس."}</p>
+              <div><button type="button" onClick={() => { setDiscardConfirmOpen(false); setPendingBoxId(null); }}>العودة للبوكس</button><button type="button" className="is-danger" onClick={discardDraft}>{pendingBoxId ? "تغيير وحذف" : "خروج وحذف"}</button></div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {sheetOpen && (
         <OrderSheet
           content={content}
           quantities={quantities}
-          boxItems={boxItems}
-          box={activeBox}
+          boxes={boxes}
           onClose={() => setSheetOpen(false)}
           onNewOrder={newOrder}
           onRemovePiece={removeCartPiece}
-          onRemoveBoxItem={removeCartBoxItem}
+          onRemoveBox={removeCartBox}
           onClearCart={clearCart}
         />
       )}

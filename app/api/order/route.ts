@@ -10,6 +10,7 @@ type IncomingOrder = {
   pieceItems?: Array<{ id?: string; quantity?: number }>;
   boxItems?: Array<{ id?: string; quantity?: number }>;
   box?: { id?: string };
+  boxes?: Array<{ id?: string; items?: Array<{ id?: string; quantity?: number }> }>;
   paymentMethod?: PaymentMethod;
 };
 
@@ -53,7 +54,16 @@ export async function POST(request: Request) {
       quantity: Math.floor(Number(item.quantity ?? 0)),
     }));
     const pieceItems = normalizeItems(data.pieceItems ?? (data.mode === "pieces" ? data.items : []));
-    const boxItems = normalizeItems(data.boxItems ?? (data.mode === "box" ? data.items : []));
+    const incomingBoxes = data.boxes?.length
+      ? data.boxes
+      : data.boxItems?.length || (data.mode === "box" && data.items?.length)
+        ? [{ id: data.box?.id, items: data.boxItems ?? data.items }]
+        : [];
+    const orderBoxes = incomingBoxes.map((entry) => ({
+      box: defaultContent.boxes.find((box) => box.enabled && box.id === entry.id),
+      items: normalizeItems(entry.items),
+    }));
+    const boxItems = orderBoxes.flatMap((entry) => entry.items);
     const items = [...pieceItems, ...boxItems];
 
     if (!items.length || items.some((item) => !item.product || item.quantity < 1 || item.quantity > 50)) {
@@ -61,18 +71,17 @@ export async function POST(request: Request) {
     }
 
     const totalPieces = items.reduce((total, item) => total + item.quantity, 0);
-    const box = boxItems.length
-      ? defaultContent.boxes.find((entry) => entry.enabled && entry.id === data.box?.id)
-      : undefined;
-
-    const boxPieceCount = boxItems.reduce((total, item) => total + item.quantity, 0);
-    if ((boxItems.length && (!box || boxPieceCount !== box.capacity)) || (!pieceItems.length && !boxItems.length)) {
+    if (orderBoxes.some(({ box, items }) => !box || items.reduce((total, item) => total + item.quantity, 0) !== box.capacity)) {
       return Response.json({ error: "invalid_quantity" }, { status: 400 });
     }
 
-    if (box) {
-      const allowedCookieTypes = normalizeAllowedCookieTypes(box.allowedCookieTypes);
-      if (boxItems.some(({ product }) => !allowedCookieTypes.includes(normalizeCookieType(product?.cookieType)))) {
+    for (const { box, items } of orderBoxes) {
+      if (box) {
+        const allowedCookieTypes = normalizeAllowedCookieTypes(box.allowedCookieTypes);
+        if (items.some(({ product }) => !allowedCookieTypes.includes(normalizeCookieType(product?.cookieType)))) {
+          return Response.json({ error: "invalid_box_product" }, { status: 400 });
+        }
+      } else {
         return Response.json({ error: "invalid_box_product" }, { status: 400 });
       }
     }
@@ -85,7 +94,10 @@ export async function POST(request: Request) {
 
     const orderId = createOrderId();
     const pieceLines = pieceItems.map(({ product, quantity }) => `${escapeHtml(product!.name)} × ${quantity}`).join("\n");
-    const boxLines = boxItems.map(({ product, quantity }) => `${escapeHtml(product!.name)} × ${quantity}`).join("\n");
+    const boxSections = orderBoxes.map(({ box, items }, index) => [
+      `<b>${escapeHtml(box!.name)} #${index + 1}</b>`,
+      items.map(({ product, quantity }) => `${escapeHtml(product!.name)} × ${quantity}`).join("\n"),
+    ].join("\n"));
     const orderDate = new Intl.DateTimeFormat("en-GB", {
       timeZone: defaultContent.store.timezone,
       day: "2-digit",
@@ -100,7 +112,7 @@ export async function POST(request: Request) {
     }).format(new Date());
     const knownPiecePrices = pieceItems.every(({ product }) => product!.price !== null);
     const piecesTotal = knownPiecePrices ? pieceItems.reduce((total, { product, quantity }) => total + product!.price! * quantity, 0) : null;
-    const productsTotal = piecesTotal === null ? null : piecesTotal + (box?.price ?? 0);
+    const productsTotal = piecesTotal === null ? null : piecesTotal + orderBoxes.reduce((total, entry) => total + (entry.box?.price ?? 0), 0);
     const selectedCity = validCities.find((entry) => entry.name === city)!;
     const grandTotal = productsTotal === null ? null : productsTotal + selectedCity.deliveryFee;
 
@@ -115,7 +127,7 @@ export async function POST(request: Request) {
       `<code>#${orderId}</code>`,
       "",
       "<b>نوع الطلب</b>",
-      data.mode === "mixed" ? "قطع + بوكس" : data.mode === "box" ? "بالبوكس" : "بالقطعة",
+      data.mode === "mixed" ? "قطع + بوكسات" : data.mode === "box" ? "بالبوكسات" : "بالقطعة",
       "",
       "━━━━━━━━━━━━━━━━━━",
       "",
@@ -131,7 +143,7 @@ export async function POST(request: Request) {
       "🛍 <b>تفاصيل الطلب</b>",
       "",
       ...(pieceLines ? ["<b>بالقطعة</b>", pieceLines, ""] : []),
-      ...(box ? [`<b>${escapeHtml(box.name)}</b>`, boxLines, ""] : []),
+      ...(boxSections.length ? [...boxSections, ""] : []),
       "",
       `<b>عدد القطع:</b> ${totalPieces}`,
       "",

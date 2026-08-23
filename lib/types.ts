@@ -102,11 +102,19 @@ export function normalizeCities(cities: (string | CityOption)[] = []): CityOptio
   });
 }
 
+export type CartBox = {
+  id: string;
+  boxId: string;
+  items: string[];
+};
+
 export type CartSession = {
   mode: OrderMode;
   quantities: Record<string, number>;
-  boxItems: string[];
-  activeBoxId: string;
+  boxes?: CartBox[];
+  /** Legacy single-box fields kept only so older saved carts can be migrated. */
+  boxItems?: string[];
+  activeBoxId?: string;
 };
 
 export type Customer = {
@@ -123,6 +131,7 @@ export type OrderPayload = {
   customer: Customer;
   items: Array<{ id: string; name: string; quantity: number; price: number | null }>;
   box?: { id: string; name: string; price: number; capacity: number };
+  boxes?: Array<{ id: string; name: string; price: number; capacity: number; items: OrderPayload["items"] }>;
   totalPieces: number;
   totalPrice: number | null;
   paymentMethod: PaymentMethod;
